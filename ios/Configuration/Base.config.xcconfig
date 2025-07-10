@@ -1,0 +1,14 @@
+//
+//  Base.config.xcconfig
+//  Record Time
+//
+//  Created by Sujan Poudel on 09/04/2025.
+//  Copyright © 2025 Web and App Pvt. Ltd. All rights reserved.
+//
+
+#include "../app.versions.properties"
+#include "../app.config.properties"
+
+BUNDLE_IDENTIFIER = $appId
+BUILD_VERSION = $versionName
+BUILD_NUMBER = $versionCode

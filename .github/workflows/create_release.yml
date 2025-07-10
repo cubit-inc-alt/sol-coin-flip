@@ -1,0 +1,83 @@
+name: Pre-Release
+
+on:
+  push:
+    tags:
+      - 'v-pre*'
+env:
+  PROD_FIREBASE_APP_ID: 1:429910632898:android:2020844c15e5e94ab3ce5b
+  APK_NAME: base
+jobs:
+  release-on-google-play:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        id: setup_jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      # Cache Gradle dependencies
+      - name: Setup Gradle Dependencies Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            .gradle
+          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle', '**/*.gradle.kts') }}
+
+      # Cache Gradle Wrapper
+      - name: Setup Gradle Wrapper Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+
+      - name: Build Apk
+        id: build_apk
+        run: ./gradlew assembleProductionRelease
+
+      - name: Read Signing Key
+        id: signing_key
+        run: |
+          BASE64_CONTENT=$(base64 -w 0 android/keys/release.jks)
+          echo "content=$BASE64_CONTENT" >> $GITHUB_OUTPUT
+
+      - name: Sign APK
+        id: sign_apk
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: android/build/outputs/apk/production/release
+          signingKeyBase64: ${{ steps.signing_key.outputs.content }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "35.0.0"
+
+      - run: mv android/build/outputs/apk/production/release/android-production-release-unsigned-signed.apk   android/build/outputs/apk/production/release/${{ env.APK_NAME }}-${{ github.ref_name }}.apk
+
+      - name: upload artifact to Firebase App Distribution
+        id: upload_app
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{env.PROD_FIREBASE_APP_ID}}
+          serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
+          file: android/build/outputs/apk/production/release/${{ env.APK_NAME }}-${{ github.ref_name }}.apk
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.event.head_commit.message }}
+          body_path: android/whatsnew-en-US
+          body: '🤖 : [Distribution Url](${{ steps.upload_app.outputs.TESTING_URI }})'
+          prerelease: true
+          files: |
+            android/build/outputs/apk/production/release/${{ env.APK_NAME }}-${{ github.ref_name }}.apk
+

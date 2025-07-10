@@ -1,0 +1,16 @@
+//
+//  Config.local.xcconfig
+//  Record Time
+//
+//  Created by Sujan Poudel on 09/04/2025.
+//  Copyright © 2025 Web and App Pvt. Ltd. All rights reserved.
+//
+
+
+#include "Base.config.xcconfig"
+
+APP_DISPLAY_NAME = $appName Local
+APP_ICON = AppIconLocal
+BUNDLE_IDENTIFIER_SUFFIX = .local
+
+ENVIRONMENT = local

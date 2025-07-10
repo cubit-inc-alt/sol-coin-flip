@@ -1,0 +1,29 @@
+package core.ui.components
+
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BoxWithSwipeRefresh(
+    onSwipe: () -> Unit,
+    isRefreshing: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    val state = rememberPullToRefreshState()
+    PullToRefreshBox(
+        modifier = modifier,
+        state = state,
+        isRefreshing = isRefreshing,
+        content = { content() },
+        onRefresh = {
+            onSwipe()
+        }
+    )
+}
+

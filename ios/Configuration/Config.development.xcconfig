@@ -1,0 +1,15 @@
+//
+//  Config.development.xcconfig
+//  Record Time
+//
+//  Created by Sujan Poudel on 09/04/2025.
+//  Copyright © 2025 Web and App Pvt. Ltd. All rights reserved.d.
+//
+
+#include "Base.config.xcconfig"
+
+APP_DISPLAY_NAME = $appName Dev
+APP_ICON = AppIconDev
+BUNDLE_IDENTIFIER_SUFFIX = .development
+
+ENVIRONMENT = development
