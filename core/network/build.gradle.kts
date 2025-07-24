@@ -28,7 +28,6 @@ kotlin {
         implementation(io)
       }
       api(libs.result)
-      implementation(libs.uuid)
     }
 
     androidMain.dependencies {

@@ -6,5 +6,5 @@ import core.data.repository.AuthRepository
 
 
 internal fun viewModelModule() = module {
-    factory { AppUIViewModel(get<AuthRepository>()) }
+    factory { AppUIViewModel() }
 }

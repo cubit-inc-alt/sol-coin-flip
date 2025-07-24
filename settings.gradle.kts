@@ -19,7 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Base"
+rootProject.name = "CoinFlip"
 
 include(":android")
 include(":core")
@@ -34,5 +34,7 @@ include(":core:network")
 include(":core:models")
 include(":core:database")
 include(":core:data")
+include(":core:sol")
 include(":core:features:welcome")
+include(":core:features:connect-wallet")
 include(":core:components:coil")

@@ -10,9 +10,9 @@ import core.ui.delegates.ViewModelStateManager
 object AppState
 
 class AppUIViewModel(
-  private val authRepository: AuthRepository
+//  private val authRepository: AuthRepository
 ) : ViewModel(), StateManager<AppState> by ViewModelStateManager(
   AppState
 ), ToastState by toastState() {
-  val isLoggedIn = authRepository.getIsLoggedIn()
+//  val isLoggedIn = authRepository.getIsLoggedIn()
 }

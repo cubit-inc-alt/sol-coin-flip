@@ -34,6 +34,10 @@ class MultiplatformComposeLibraryConventionPlugin : Plugin<Project> {
         implementation(extension.materialIconsExtended)
         implementation(extension.components.resources)
         implementation(extension.components.uiToolingPreview)
+
+        implementation(libs.jetbrain.navigation.compose)
+        implementation(libs.jetbrain.lifecycle.viewmodel)
+        implementation(libs.jetbrain.lifecycle.viewmodel.compose)
       }
     }
   }

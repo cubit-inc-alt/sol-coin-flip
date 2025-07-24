@@ -17,7 +17,7 @@ kotlin {
 
 
     implementation(projects.core.features.welcome)
-
+    implementation(projects.core.sol)
   }
 
 }

@@ -11,7 +11,7 @@ val Project.resourcesNamespace: String
   get() = "$namespace.generated.resources"
 
 private fun Project.projectPathAsPackage() = path
-  .split(":")
+  .split(":", "-")
   .filter { it.isNotBlank() }
   .joinToString(".")
 

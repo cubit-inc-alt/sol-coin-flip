@@ -76,8 +76,13 @@ dependencies {
   implementation(libs.androidx.activity.compose)
   implementation(projects.core.app)
   implementation(projects.core.common)
+  implementation(projects.core.sol)
   implementation(libs.koin.core)
   implementation(libs.koin.android)
+
+  implementation(libs.solana)
+  implementation(libs.solana.rpc)
+  implementation(libs.solana.eddsa)
 }
 
 fun ApkSigningConfig.configureWithSigningKeyProperties(propFileName: String) {

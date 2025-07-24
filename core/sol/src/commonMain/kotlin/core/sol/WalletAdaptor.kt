@@ -1,0 +1,168 @@
+package core.sol
+
+import androidx.compose.ui.platform.UriHandler
+import androidx.core.uri.Uri
+import androidx.core.uri.UriUtils
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
+import com.ionspin.kotlin.crypto.LibsodiumInitializer
+import com.ionspin.kotlin.crypto.box.Box
+import foundation.metaplex.base58.decodeBase58
+import foundation.metaplex.base58.encodeToBase58String
+import foundation.metaplex.solanaeddsa.Keypair
+import foundation.metaplex.solanaeddsa.SolanaEddsa
+import foundation.metaplex.solanapublickeys.PublicKey
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
+
+@Suppress("ConstPropertyName")
+object PhantomWalletInfo {
+  const val baseUrl = "https://phantom.app/ul/v1/"
+}
+
+@OptIn(ExperimentalUuidApi::class, ExperimentalUnsignedTypes::class)
+class WalletAdaptor(
+  private val appUrl: String = "https://cubit.com.np",
+  private val redirectLinkPrefix: String = "flipper://wallet"
+) {
+  lateinit var urlHandler: UriHandler
+  private lateinit var dAppKeyPair: Keypair
+  private val callBacks = mutableMapOf<Uuid, (result: WalletResult<WalletResponse.Success>) -> Unit>()
+
+  init {
+
+    CoroutineScope(Dispatchers.IO).launch {
+      dAppKeyPair = SolanaEddsa.generateKeypair()
+    }
+
+    CoroutineScope(Dispatchers.IO).launch {
+      LibsodiumInitializer.initializeWithCallback {
+        println("LibSodium initialized")
+      }
+    }
+  }
+
+  @OptIn(ExperimentalUuidApi::class, ExperimentalUnsignedTypes::class)
+  fun WalletMethod.encode(
+    requestId: Uuid
+  ): String {
+
+    return buildString {
+      append(PhantomWalletInfo.baseUrl)
+      append("$methodName?")
+
+      when (this@encode) {
+        is WalletMethod.Connect -> {
+          queryParam(
+            WalletUrlQueryParams.dappEncryptionPublicKey,
+            dAppKeyPair.publicKey.toByteArray().encodeToBase58String()
+          )
+        }
+      }
+
+      queryParam(WalletUrlQueryParams.appUrl, appUrl)
+      queryParam(WalletUrlQueryParams.redirectLink, "$redirectLinkPrefix/$methodName/$requestId")
+    }
+  }
+
+  fun Uri.decodeWalletResponse(): WalletResponse {
+
+    queryParam(WalletUrlQueryParams.errorCode)?.let { errorCode ->
+      return WalletResponse.Error(
+        errorCode = errorCode.toIntOrNull() ?: -1,
+        errorMessage = queryParam(WalletUrlQueryParams.errorMessage),
+      )
+    }
+
+    val parseError = WalletResponse.Error(-1, "Unable to parse response: $this")
+
+    val (method, _) = getPathSegments()
+      .filter { it.isNotBlank() }
+      .takeIf { it.size >= 2 } ?: return parseError("Not enough path segments")
+
+    val methodEncoded = enumValueOf<WalletMethodName>(method)
+
+    val walletPublicKey = queryParam(WalletUrlQueryParams.phantomEncryptionPublicKey)
+      ?.decodeBase58()?.toUByteArray()
+      ?: return parseError("unable to decode ${WalletUrlQueryParams.phantomEncryptionPublicKey}")
+
+    val nonce = queryParam(WalletUrlQueryParams.nonce)
+      ?.decodeBase58()?.asUByteArray() ?: return parseError("unable to decode nonce")
+
+    val data = queryParam(WalletUrlQueryParams.data)
+      ?.decodeBase58()?.asUByteArray() ?: return parseError("unable to decode data")
+
+    val dataDecrypted = decryptMessage(nonce, data, walletPublicKey)
+
+    return when (methodEncoded) {
+      WalletMethodName.connect -> WalletResponse.Success.Connect(
+        phantomEncryptionPublicKey = queryParam(WalletUrlQueryParams.phantomEncryptionPublicKey)
+          ?.let { PublicKey.valueOf(it) } ?: return parseError,
+        session = "",
+        nonce = nonce
+      )
+    }
+  }
+
+  @OptIn(ExperimentalUnsignedTypes::class)
+  private fun decryptMessage(
+    nonce: UByteArray,
+    message: UByteArray,
+    walletPublicKey: UByteArray
+  ) {
+
+    val sharedSecret = Box.beforeNM(
+      publicKey = walletPublicKey,
+      secretKey = dAppKeyPair.secretKey.asUByteArray()
+    )
+
+    val message = Box.openEasyAfterNM(message, nonce, sharedSecret)
+  }
+
+  @OptIn(ExperimentalUuidApi::class)
+  fun invoke(method: WalletMethod, callBack: (WalletResult<WalletResponse.Success>) -> Unit) {
+    val uuid = Uuid.random()
+    callBacks[uuid] = callBack
+    urlHandler.openUri(method.encode(uuid))
+  }
+
+  fun connect(onConnected: (WalletResult<WalletResponse.Success.Connect>) -> Unit) {
+    invoke(WalletMethod.Connect(dAppKeyPair.publicKey)) {
+      val result = it.map { walletCallbackSuccess -> walletCallbackSuccess as WalletResponse.Success.Connect }
+      onConnected(result)
+    }
+  }
+
+  fun handleReturnFromWallet(url: String) {
+    if (!url.startsWith(redirectLinkPrefix))
+      return
+
+    val uri = UriUtils.parse(url)
+
+    val (method, requestId) = uri.getPathSegments().filter { it.isNotBlank() }.takeIf { it.size >= 2 }
+      ?: return
+
+    val id = Uuid.parse(requestId)
+
+    val param = uri.decodeWalletResponse()
+
+    val result = when (param) {
+      is WalletResponse.Success -> Result.success(param)
+      is WalletResponse.Error -> Result.failure(param)
+    }
+
+    callBacks.remove(id)?.invoke(result)
+  }
+}
+
+
+private fun Uri.parseError(message: String): WalletResponse.Error {
+  return WalletResponse.Error(-1, "Unable to parse response message: $message uri:$this")
+}

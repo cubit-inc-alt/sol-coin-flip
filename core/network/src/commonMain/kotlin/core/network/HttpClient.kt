@@ -36,7 +36,7 @@ internal fun buildAuthHttpClient(
 
     installJsonContentNegotiation()
 
-    installTimeout()
+//    installTimeout()
 
     installAuth()
     with(dataStore) {
@@ -54,7 +54,7 @@ internal fun buildNoAuthHttpClient(
 
     installWebSockets()
 
-    installTimeout()
+//    installTimeout()
 }
 
 internal fun HttpClientConfig<*>.installWebSockets() {
@@ -65,7 +65,7 @@ internal fun HttpClientConfig<*>.installWebSockets() {
 
 internal fun HttpClientConfig<*>.installDefaultRequest() {
     install(DefaultRequest) {
-        url(PandaConfig.environment)
+        url(PandaConfig.apiBaseUrl)
     }
 }
 
