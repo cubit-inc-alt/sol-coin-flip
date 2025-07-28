@@ -8,6 +8,7 @@ import com.github.kittinunf.result.map
 import core.sol.nacl.Nacl
 import foundation.metaplex.base58.decodeBase58
 import foundation.metaplex.base58.encodeToBase58String
+import foundation.metaplex.solanapublickeys.PublicKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -91,20 +92,12 @@ class WalletAdaptor(
         val boxedMessage = queryParam(WalletUrlQueryParams.data)?.decodeBase58()
           ?: return parseError("unable to decode data")
 
-        val data = openMessage(boxedMessage, nonce)
-          .also {
-            println(
-              """
-              message: ${queryParam(WalletUrlQueryParams.data)},
-
-            """.trimIndent()
-            )
-          }?.let {
+        val data = openMessage(boxedMessage, nonce)?.let {
             Json.parseToJsonElement(it.decodeToString()) as JsonObject
           } ?: return parseError("Unable to decode data")
 
         WalletResponse.Success.Connect(
-          walletPublicKey.encodeToBase58String(),
+          walletPublicKey = walletPublicKey,
           session = data["session"]?.toString() ?: return parseError("Unable to decode data"),
           nonce = nonce.encodeToBase58String()
         )

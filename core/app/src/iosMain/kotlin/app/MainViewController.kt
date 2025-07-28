@@ -1,5 +1,6 @@
 package app
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.window.ComposeUIViewController
 import core.app.AppUI
 import core.app.AppUIViewModel
@@ -8,6 +9,7 @@ import core.app.di.appModule
 import core.app.onAppStarted
 import core.app.walletAdaptor
 import core.common.inject
+import core.sol.WalletAdaptor
 
 @Suppress("unused", "FunctionName")
 fun MainViewController() = ComposeUIViewController(
@@ -17,11 +19,15 @@ fun MainViewController() = ComposeUIViewController(
     }
   }
 ) {
-  onAppStarted()
+
+  LaunchedEffect(Unit){
+    onAppStarted()
+  }
+
   val viewModel by inject<AppUIViewModel>()
   AppUI(viewModel)
 }
 
 object WalletAdaptor {
-  val adaptor = walletAdaptor
+  val adaptor by inject<WalletAdaptor>()
 }

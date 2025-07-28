@@ -26,8 +26,8 @@ class ConfigConventionPlugin : Plugin<Project> {
 
     extensions.configure<BuildKonfigExtension> {
       this.exposeObjectWithName
-      objectName = "PandaConfig"
-      exposeObjectWithName = "PandaConfig"
+      objectName = "AppConfig"
+      exposeObjectWithName = "AppConfig"
       packageName = target.namespace
 
       defaultConfigs(local) {

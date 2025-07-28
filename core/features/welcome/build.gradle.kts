@@ -8,10 +8,12 @@ plugins {
 
 kotlin{
   sourceSets.commonMain.dependencies {
+    implementation(projects.core.common)
+
     implementation(libs.solana)
     implementation(libs.solana.rpc)
     implementation(libs.solana.eddsa)
 
-    implementation(projects.core.sol)
+    implementation(projects.core.walletAdaptor)
   }
 }

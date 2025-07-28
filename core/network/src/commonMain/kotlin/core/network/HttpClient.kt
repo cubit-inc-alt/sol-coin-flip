@@ -13,13 +13,13 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
-import core.common.PandaConfig
 import core.common.inject
 import core.common.isDebugBuild
 import core.datastore.DataStore
 import core.network.extensions.getBearerTokens
 import core.network.plugins.DeviceHeaders
 import core.analytics.Log
+import core.common.AppConfig
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -65,7 +65,7 @@ internal fun HttpClientConfig<*>.installWebSockets() {
 
 internal fun HttpClientConfig<*>.installDefaultRequest() {
     install(DefaultRequest) {
-        url(PandaConfig.apiBaseUrl)
+        url(AppConfig.API_BASE_URL)
     }
 }
 

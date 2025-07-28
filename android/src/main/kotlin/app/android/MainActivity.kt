@@ -1,19 +1,19 @@
 package app.android
 
-import android.app.ComponentCaller
 import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.CompositionLocalProvider
 import core.app.AppUI
 import core.app.AppUIViewModel
-import core.app.walletAdaptor
 import core.common.inject
+import core.sol.WalletAdaptor
 
 
 class MainActivity : ComponentActivity() {
+
+  val walletAdaptor: WalletAdaptor by inject<WalletAdaptor>()
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
@@ -29,10 +29,12 @@ class MainActivity : ComponentActivity() {
     setIntent(intent)
     intent.checkForWalletReturnData()
   }
+
+  private fun Intent.checkForWalletReturnData() {
+    val data = data ?: return
+
+    walletAdaptor.handleReturnFromWallet(data.toString())
+  }
+
 }
 
-private fun Intent.checkForWalletReturnData() {
-  val data = data ?: return
-
-  walletAdaptor.handleReturnFromWallet(data.toString())
-}

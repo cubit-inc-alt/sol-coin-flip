@@ -76,7 +76,7 @@ dependencies {
   implementation(libs.androidx.activity.compose)
   implementation(projects.core.app)
   implementation(projects.core.common)
-  implementation(projects.core.sol)
+  implementation(projects.core.walletAdaptor)
   implementation(libs.koin.core)
   implementation(libs.koin.android)
 

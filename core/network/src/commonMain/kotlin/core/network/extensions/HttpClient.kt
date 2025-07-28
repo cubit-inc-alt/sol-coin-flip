@@ -26,7 +26,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import core.analytics.Log
-import core.common.PandaConfig
+import core.common.AppConfig
 import core.common.inject
 import core.common.isDebugBuild
 import core.datastore.DataStore
@@ -165,7 +165,7 @@ internal suspend inline fun <reified Response> HttpClient.uploadMultipart(
     try {
         val dataStore by inject<DataStore>()
         val response = client.submitFormWithBinaryData(
-            url = "${PandaConfig.apiBaseUrl}${ApiEndpoints}rest of api..",
+            url = "${AppConfig.API_BASE_URL}${ApiEndpoints}rest of api..",
             formData = parts
         ) {
             method = httpMethod

@@ -17,7 +17,7 @@ sealed interface WalletResponse {
   class Error(val errorCode: Int, val errorMessage: String?) : kotlin.Error(errorMessage), WalletResponse
 
   sealed class Success : WalletResponse {
-    data class Connect(val walletPublicKey: String, val session: String, val nonce: String) : Success()
+    class Connect(val walletPublicKey: ByteArray, val session: String, val nonce: String) : Success()
   }
 }
 

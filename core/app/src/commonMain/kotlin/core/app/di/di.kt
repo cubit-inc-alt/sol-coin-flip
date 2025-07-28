@@ -8,6 +8,7 @@ import kotlin.native.HiddenFromObjC
 fun appModule() = module {
   includes(
     dataModule(),
-    viewModelModule(),
+    viewModelModule,
+    web3Module
   )
 }
