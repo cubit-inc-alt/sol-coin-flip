@@ -1,11 +1,14 @@
 package core.features.welcome
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -20,6 +23,8 @@ import androidx.core.uri.UriUtils
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.onSuccess
 import core.sol.LocalWalletAdaptor
+import core.sol.WalletResponse
+import core.sol.WalletResult
 import foundation.metaplex.solanaeddsa.Keypair
 import foundation.metaplex.solanaeddsa.SolanaEddsa
 import kotlinx.coroutines.CoroutineScope
@@ -32,22 +37,22 @@ import kotlinx.coroutines.launch
 fun WelcomeScreen() {
   val walletHandler = LocalWalletAdaptor.current
 
-  var result by remember { mutableStateOf<Any?>(null) }
+  var result by remember { mutableStateOf<WalletResult<WalletResponse>?>(null) }
 
   Scaffold {
-    Box(
+    Column(
       modifier = Modifier.fillMaxSize(),
-      contentAlignment = Alignment.Center
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-      result?.also {
-        Text(it.toString())
-      }
+      Text(result.toString())
 
       Button(
         onClick = {
           walletHandler.connect {
             result = it
+            println("result is $it")
           }
         }
       ) {

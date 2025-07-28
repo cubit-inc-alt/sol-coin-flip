@@ -5,17 +5,15 @@ import androidx.core.uri.Uri
 import androidx.core.uri.UriUtils
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import com.ionspin.kotlin.crypto.LibsodiumInitializer
-import com.ionspin.kotlin.crypto.box.Box
+import core.sol.nacl.Nacl
 import foundation.metaplex.base58.decodeBase58
 import foundation.metaplex.base58.encodeToBase58String
-import foundation.metaplex.solanaeddsa.Keypair
-import foundation.metaplex.solanaeddsa.SolanaEddsa
-import foundation.metaplex.solanapublickeys.PublicKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.uuid.ExperimentalUuidApi
@@ -33,19 +31,13 @@ class WalletAdaptor(
   private val redirectLinkPrefix: String = "flipper://wallet"
 ) {
   lateinit var urlHandler: UriHandler
-  private lateinit var dAppKeyPair: Keypair
+  lateinit var walletPublicKey: ByteArray
+  private lateinit var dAppKeyPair: Nacl.KeyPair
   private val callBacks = mutableMapOf<Uuid, (result: WalletResult<WalletResponse.Success>) -> Unit>()
 
   init {
-
     CoroutineScope(Dispatchers.IO).launch {
-      dAppKeyPair = SolanaEddsa.generateKeypair()
-    }
-
-    CoroutineScope(Dispatchers.IO).launch {
-      LibsodiumInitializer.initializeWithCallback {
-        println("LibSodium initialized")
-      }
+      dAppKeyPair = Nacl.Box.keyPair()
     }
   }
 
@@ -62,7 +54,7 @@ class WalletAdaptor(
         is WalletMethod.Connect -> {
           queryParam(
             WalletUrlQueryParams.dappEncryptionPublicKey,
-            dAppKeyPair.publicKey.toByteArray().encodeToBase58String()
+            dAppKeyPair.publicKey.encodeToBase58String()
           )
         }
       }
@@ -81,50 +73,56 @@ class WalletAdaptor(
       )
     }
 
-    val parseError = WalletResponse.Error(-1, "Unable to parse response: $this")
-
     val (method, _) = getPathSegments()
       .filter { it.isNotBlank() }
       .takeIf { it.size >= 2 } ?: return parseError("Not enough path segments")
 
     val methodEncoded = enumValueOf<WalletMethodName>(method)
 
-    val walletPublicKey = queryParam(WalletUrlQueryParams.phantomEncryptionPublicKey)
-      ?.decodeBase58()?.toUByteArray()
+    walletPublicKey = queryParam(WalletUrlQueryParams.phantomEncryptionPublicKey)
+      ?.decodeBase58()
       ?: return parseError("unable to decode ${WalletUrlQueryParams.phantomEncryptionPublicKey}")
 
-    val nonce = queryParam(WalletUrlQueryParams.nonce)
-      ?.decodeBase58()?.asUByteArray() ?: return parseError("unable to decode nonce")
-
-    val data = queryParam(WalletUrlQueryParams.data)
-      ?.decodeBase58()?.asUByteArray() ?: return parseError("unable to decode data")
-
-    val dataDecrypted = decryptMessage(nonce, data, walletPublicKey)
+    val nonce = queryParam(WalletUrlQueryParams.nonce)?.decodeBase58()
+      ?: return parseError("unable to decode nonce")
 
     return when (methodEncoded) {
-      WalletMethodName.connect -> WalletResponse.Success.Connect(
-        phantomEncryptionPublicKey = queryParam(WalletUrlQueryParams.phantomEncryptionPublicKey)
-          ?.let { PublicKey.valueOf(it) } ?: return parseError,
-        session = "",
-        nonce = nonce
-      )
+      WalletMethodName.connect -> {
+        val boxedMessage = queryParam(WalletUrlQueryParams.data)?.decodeBase58()
+          ?: return parseError("unable to decode data")
+
+        val data = openMessage(boxedMessage, nonce)
+          .also {
+            println(
+              """
+              message: ${queryParam(WalletUrlQueryParams.data)},
+
+            """.trimIndent()
+            )
+          }?.let {
+            Json.parseToJsonElement(it.decodeToString()) as JsonObject
+          } ?: return parseError("Unable to decode data")
+
+        WalletResponse.Success.Connect(
+          walletPublicKey.encodeToBase58String(),
+          session = data["session"]?.toString() ?: return parseError("Unable to decode data"),
+          nonce = nonce.encodeToBase58String()
+        )
+      }
     }
   }
 
-  @OptIn(ExperimentalUnsignedTypes::class)
-  private fun decryptMessage(
-    nonce: UByteArray,
-    message: UByteArray,
-    walletPublicKey: UByteArray
-  ) {
-
-    val sharedSecret = Box.beforeNM(
+  private fun openMessage(
+    message: ByteArray,
+    nonce: ByteArray
+  ) = runCatching {
+    Nacl.Box.open(
+      msg = message,
+      nonce = nonce,
       publicKey = walletPublicKey,
-      secretKey = dAppKeyPair.secretKey.asUByteArray()
+      secretKey = dAppKeyPair.secretKey
     )
-
-    val message = Box.openEasyAfterNM(message, nonce, sharedSecret)
-  }
+  }.getOrNull()
 
   @OptIn(ExperimentalUuidApi::class)
   fun invoke(method: WalletMethod, callBack: (WalletResult<WalletResponse.Success>) -> Unit) {
@@ -134,7 +132,7 @@ class WalletAdaptor(
   }
 
   fun connect(onConnected: (WalletResult<WalletResponse.Success.Connect>) -> Unit) {
-    invoke(WalletMethod.Connect(dAppKeyPair.publicKey)) {
+    invoke(WalletMethod.Connect()) {
       val result = it.map { walletCallbackSuccess -> walletCallbackSuccess as WalletResponse.Success.Connect }
       onConnected(result)
     }

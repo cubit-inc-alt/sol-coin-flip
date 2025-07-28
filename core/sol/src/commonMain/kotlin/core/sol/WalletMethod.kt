@@ -3,7 +3,6 @@
 package core.sol
 
 import com.github.kittinunf.result.Result
-import foundation.metaplex.solanapublickeys.PublicKey
 
 @Suppress("EnumEntryName")
 enum class WalletMethodName {
@@ -11,14 +10,14 @@ enum class WalletMethodName {
 }
 
 sealed class WalletMethod(val methodName: WalletMethodName) {
-  class Connect(val appPublicKey: PublicKey) : WalletMethod(WalletMethodName.connect)
+  class Connect : WalletMethod(WalletMethodName.connect)
 }
 
 sealed interface WalletResponse {
   class Error(val errorCode: Int, val errorMessage: String?) : kotlin.Error(errorMessage), WalletResponse
 
-  sealed class Success(val nonce: UByteArray) : WalletResponse {
-    class Connect(val phantomEncryptionPublicKey: PublicKey, val session: String, nonce: UByteArray) : Success(nonce)
+  sealed class Success : WalletResponse {
+    data class Connect(val walletPublicKey: String, val session: String, val nonce: String) : Success()
   }
 }
 

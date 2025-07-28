@@ -18,13 +18,7 @@ kotlin {
 
       implementation(libs.solana)
       implementation(libs.solana.rpc)
-      implementation(libs.solana.eddsa)
       implementation(libs.solana.base58)
-
-      implementation("com.ionspin.kotlin:multiplatform-crypto-libsodium-bindings:0.9.2")
-
-
-//      implementation(libs.multiplatform.crypto.libsodium.bindings)
     }
   }
 }
