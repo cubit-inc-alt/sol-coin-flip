@@ -13,7 +13,7 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
-import core.common.PandaConfig
+import core.common.AppConfig
 import core.common.inject
 import core.common.isDebugBuild
 import core.datastore.DataStore
@@ -65,7 +65,7 @@ internal fun HttpClientConfig<*>.installWebSockets() {
 
 internal fun HttpClientConfig<*>.installDefaultRequest() {
     install(DefaultRequest) {
-        url(PandaConfig.environment)
+        url(AppConfig.environment)
     }
 }
 

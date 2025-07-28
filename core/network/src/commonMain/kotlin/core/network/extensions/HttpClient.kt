@@ -26,7 +26,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import core.analytics.Log
-import core.common.PandaConfig
+import core.common.AppConfig
 import core.common.inject
 import core.common.isDebugBuild
 import core.datastore.DataStore
@@ -137,49 +137,3 @@ internal suspend inline fun <reified Response : Any> HttpClient.put(
     queryMap = params,
     block = block,
 )
-
-
-internal suspend inline fun <reified Response> HttpClient.uploadMultipart(
-    path: String,
-    httpMethod: HttpMethod = HttpMethod.Post,
-    parts: List<PartData>,
-    requestContentType: ContentType = ContentType.MultiPart.FormData,
-    acceptContentType: ContentType = Application.Json,
-    crossinline block: HttpRequestBuilder.() -> Unit = {},
-) = withContext(Dispatchers.IO) {
-
-    val client = HttpClient {
-        install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true })
-        }
-        install(Logging) {
-            level = if (isDebugBuild()) LogLevel.ALL else LogLevel.INFO
-
-            this.logger = object : Logger {
-                override fun log(message: String) {
-                    Log.info("Ktor", message)
-                }
-            }
-        }
-    }
-    try {
-        val dataStore by inject<DataStore>()
-        val response = client.submitFormWithBinaryData(
-            url = "${PandaConfig.apiBaseUrl}${ApiEndpoints}rest of api..",
-            formData = parts
-        ) {
-            method = httpMethod
-            contentType(requestContentType)
-            accept(acceptContentType)
-
-            header("Authorization", "Bearer ${dataStore.accessToken}")
-            onUpload { bytesSentTotal, contentLength ->
-                Log.info("Bytes sent: $bytesSentTotal / $contentLength")
-            }
-        }.body<Response>()
-        Result.success(response)
-    } catch (e: Exception) {
-        Log.error("HttpClient", e, message = "Failure '${e.message}' on path '$path'")
-        Result.failure(e.resolveToFailure())
-    }
-}
