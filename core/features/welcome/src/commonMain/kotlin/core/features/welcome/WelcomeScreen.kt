@@ -16,6 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import core.common.inject
@@ -29,7 +31,6 @@ import core.sol.WalletResult
 @Composable
 fun WelcomeScreen() {
   val viewModel by inject<WelcomeViewModel>()
-
   val connectedAccount by viewModel.connectedAccount.collectAsStateWithLifecycle()
 
   Scaffold {
@@ -39,18 +40,31 @@ fun WelcomeScreen() {
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-      Text("debuggable ${isDebugBuild()}")
-
       Spacer(modifier = Modifier.height(20.dp))
 
+      connectedAccount?.also {
+        Text(
+          text = "Connected",
+          color = Color.Blue,
+          textAlign = TextAlign.Center
+        )
+      }
+
       Text(
-        text = connectedAccount?.toBase58() ?: "Not Connected"
+        text = connectedAccount?.toBase58() ?: "Not Connected",
+        textAlign = TextAlign.Center
       )
 
       Spacer(modifier = Modifier.height(60.dp))
 
-      Button(onClick = viewModel::connect) {
-        Text("Connect Wallet")
+      connectedAccount?.let {
+        Button(onClick = viewModel::flipCoin) {
+          Text("Flip Coin", color = Color.White)
+        }
+      } ?: run {
+        Button(onClick = viewModel::connect) {
+          Text("Connect Phantom", color = Color.White)
+        }
       }
     }
   }

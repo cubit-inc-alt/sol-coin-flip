@@ -1,20 +1,18 @@
-import org.gradle.kotlin.dsl.implementation
-
 plugins {
   alias(libs.plugins.multiplatform.library.compose)
+  alias(libs.plugins.config)
   alias(libs.plugins.kotlinx.serilization)
 }
-
-
-kotlin{
+kotlin {
   sourceSets.commonMain.dependencies {
-    implementation(projects.core.common)
+    implementation(projects.core.resources)
 
     implementation(libs.solana)
     implementation(libs.solana.rpc)
-    implementation(libs.solana.eddsa)
+    implementation(libs.solana.base58)
 
-    implementation(projects.core.walletAdaptor)
-    implementation(projects.core.web3)
+    implementation(libs.buffer)
+    implementation("io.github.funkatronics:multimult:0.2.3")
   }
+
 }

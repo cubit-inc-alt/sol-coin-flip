@@ -7,6 +7,8 @@ android-targetSdk = "35"
 
 # Core Plugins
 agp = "8.9.0"
+#buffer = "1.4.2"
+kborsh = "0.1.0"
 kotlin = "2.1.0"
 androidx-activityCompose = "1.8.0"
 compose-plugin = "1.7.1"
@@ -41,26 +43,22 @@ context-provider = "0.2.2"
 
 # Database
 room = "2.7.0-alpha12"
-solana-kmp = "0.2.10"
+solana-kmp = "0.3.0-beta1"
 sqlite = "2.5.0-alpha12"
 
 # Network
-ktor = "3.0.0-wasm2"
+ktor = "3.2.2"
 chucker = "3.5.2"
 result = "5.6.0"
-uuid = "0.0.25"
 
 # Compose
 lottie = "6.0.0"
 coil3 = "3.0.0-alpha06"
 
-# Map
-mapsCompose = "4.3.3"
-playServicesMaps = "18.2.0"
-
 # Others
 kotlinx-serilization-json = "1.7.0"
 kotlinx-datetime = "0.6.0"
+buffer = "1.4.2"
 
 # Logging
 napier = "2.7.1"
@@ -78,6 +76,9 @@ composeBom = "2024.09.00"
 
 [libraries]
 # Core
+buffer = { module = "com.ditchoom:buffer", version.ref = "buffer" }
+bufferAndroid = { module = "com.ditchoom:buffer-android", version.ref = "buffer" }
+bufferIos = { module = "com.ditchoom:buffer-ios", version.ref = "buffer" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 buildkonfigCompiler = { module = "com.codingfeline.buildkonfig:buildkonfig-compiler", version.ref = "buildkonfig" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }
@@ -90,7 +91,6 @@ jetbrain-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecy
 jetbrain-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jb-navigation-compose" }
 
 # DataStore
-multiplatform-crypto-libsodium-bindings = { module = "com.ionspin.kotlin:multiplatform-crypto-libsodium-bindings", version.ref = "multiplatformCryptoLibsodiumBindings" }
 multiplatformSettings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
 contextProvider = { module = "me.sujanpoudel.multiplatform.utils:context-provider", version.ref = "context-provider" }
 

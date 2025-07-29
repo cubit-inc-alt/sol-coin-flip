@@ -12,31 +12,36 @@ import core.network.PandaRemoteApiImpl
 
 import core.network.baseHttpClient
 import core.network.buildAuthHttpClient
+import core.network.buildNoAuthHttpClient
 
 @Suppress("ConstPropertyName")
-internal object Named {
-    object HttpClient {
-        const val base = "base-http-client"
-        const val noAuth = "no-auth-http-client"
-        const val auth = "auth-http-client"
-    }
+object HttpClientName {
+  const val base = "base-http-client"
+  const val noAuth = "no-auth-http-client"
+  const val auth = "auth-http-client"
 }
 
+
 fun networkModule(): Module = module {
-    includes(platformNetworkModule())
+  includes(platformNetworkModule())
 
-    single(named(Named.HttpClient.base)) {
-        baseHttpClient()
-    }
-    single(named(Named.HttpClient.auth)) {
-        buildAuthHttpClient(get<HttpClient>(named(Named.HttpClient.base)), get<DataStore>())
-    }
+  single(named(HttpClientName.base)) {
+    baseHttpClient()
+  }
 
-    single<PandaRemoteApi> {
-        PandaRemoteApiImpl(get<HttpClient>(named(Named.HttpClient.auth)))
-    }
+  single(named(HttpClientName.auth)) {
+    buildAuthHttpClient(get<HttpClient>(named(HttpClientName.base)), get<DataStore>())
+  }
 
-    singleOf(::BearerTokenRefresher)
+  single(named(HttpClientName.noAuth)) {
+    buildNoAuthHttpClient(get<HttpClient>(named(HttpClientName.base)))
+  }
+
+  single<PandaRemoteApi> {
+    PandaRemoteApiImpl(get<HttpClient>(named(HttpClientName.auth)))
+  }
+
+  singleOf(::BearerTokenRefresher)
 }
 
 internal expect fun platformNetworkModule(): Module

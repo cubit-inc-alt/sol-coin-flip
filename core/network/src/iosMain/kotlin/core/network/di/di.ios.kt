@@ -4,10 +4,9 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import core.network.baseHttpClient
-import core.network.di.Named
 
 internal actual fun platformNetworkModule(): Module = module {
-    factory(named(Named.HttpClient.base)) {
+    factory(named(HttpClientName.base)) {
         baseHttpClient()
     }
 }

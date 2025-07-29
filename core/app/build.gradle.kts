@@ -12,6 +12,7 @@ kotlin {
     implementation(projects.core.designSystem)
     implementation(projects.core.ui)
     implementation(projects.core.data)
+    implementation(projects.core.network)
     implementation(libs.jetbrain.navigation.compose)
     implementation(projects.core.components.coil)
 

@@ -36,7 +36,7 @@ internal fun buildAuthHttpClient(
 
     installJsonContentNegotiation()
 
-//    installTimeout()
+    installTimeout()
 
     installAuth()
     with(dataStore) {
@@ -52,16 +52,9 @@ internal fun buildNoAuthHttpClient(
 
     installLogging()
 
-    installWebSockets()
-
-//    installTimeout()
+    installTimeout()
 }
 
-internal fun HttpClientConfig<*>.installWebSockets() {
-    install(WebSockets) {
-        contentConverter = KotlinxWebsocketSerializationConverter(nonStrictJson)
-    }
-}
 
 internal fun HttpClientConfig<*>.installDefaultRequest() {
     install(DefaultRequest) {

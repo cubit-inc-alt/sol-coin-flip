@@ -11,7 +11,7 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositories {
+  repositories {
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
@@ -35,6 +35,7 @@ include(":core:models")
 include(":core:database")
 include(":core:data")
 include(":core:wallet-adaptor")
+include(":core:web3")
 include(":core:features:welcome")
 include(":core:features:connect-wallet")
 include(":core:components:coil")

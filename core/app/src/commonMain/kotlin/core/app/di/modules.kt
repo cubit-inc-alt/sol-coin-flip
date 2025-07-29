@@ -4,8 +4,12 @@ import org.koin.dsl.module
 import core.app.AppUIViewModel
 import core.common.AppConfig
 import core.features.welcome.WelcomeViewModel
+import core.network.di.HttpClientName
 import core.sol.WalletAdaptor
 import foundation.metaplex.rpc.RPC
+import foundation.metaplex.rpc.networking.NetworkDriver
+import io.ktor.client.HttpClient
+import org.koin.core.qualifier.named
 
 
 internal val viewModelModule = module {
@@ -14,6 +18,11 @@ internal val viewModelModule = module {
 }
 
 internal val web3Module = module {
-  single { RPC(AppConfig.RPC_URL) }
+  single {
+    RPC(
+      rpcUrl = AppConfig.RPC_URL,
+      httpNetworkDriver = NetworkDriver(get<HttpClient>(named(HttpClientName.noAuth)))
+    )
+  }
   single { WalletAdaptor() }
 }
