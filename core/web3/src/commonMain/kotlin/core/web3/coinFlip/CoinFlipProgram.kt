@@ -28,7 +28,7 @@ object CoinFlipProgram {
         programId = ID,
         keys = keys,
         data = Borsh.encodeToByteArray(
-          serializer = CoinFlipProgram.args.FlipCoin.serializer(),
+          serializer = AnchorInstructionSerializer("flip", CoinFlipProgram.args.FlipCoin.serializer()),
           value = args,
         )
       )
@@ -58,7 +58,8 @@ object SPLSnoopInstructions {
       keys, Borsh.encodeToByteArray(
         AnchorInstructionSerializer("noop_instruction"),
         Args_noopInstruction(data)
-      ))
+      )
+    )
   }
 
   @Serializable

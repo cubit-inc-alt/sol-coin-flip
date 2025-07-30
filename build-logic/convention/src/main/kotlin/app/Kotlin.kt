@@ -9,53 +9,54 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 internal fun KotlinMultiplatformExtension.configureMultiplatformTargets() {
-    targets.all {
-        compilations.all {
-            compileTaskProvider.configure {
-                configureKotlinCompilation()
-            }
-        }
+  targets.all {
+    compilations.all {
+      compileTaskProvider.configure {
+        configureKotlinCompilation()
+      }
     }
+  }
 
-    applyDefaultHierarchyTemplate()
+  applyDefaultHierarchyTemplate()
 
-    androidTarget()
+  androidTarget()
 
-    iosArm64()
-    iosSimulatorArm64()
+  iosArm64()
+  iosSimulatorArm64()
 }
 
 fun KotlinCompilationTask<*>.configureKotlinCompilation() {
-    compilerOptions {
-        allWarningsAsErrors.set(false)
-        freeCompilerArgs.addAll(
-            listOf(
-                "-Xcontext-receivers",
-                "-Xexpect-actual-classes",
-            ),
-        )
-        optIn.addAll(
-            listOf(
-                "kotlin.experimental.ExperimentalObjCRefinement",
-                "kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi",
-            ),
-        )
-    }
+  compilerOptions {
+    allWarningsAsErrors.set(false)
+    freeCompilerArgs.addAll(
+      listOf(
+        "-Xcontext-receivers",
+        "-Xexpect-actual-classes",
+        "-Xnested-type-aliases"
+      ),
+    )
+    optIn.addAll(
+      listOf(
+        "kotlin.experimental.ExperimentalObjCRefinement",
+        "kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi",
+      ),
+    )
+  }
 }
 
 fun Project.configureTestLogging() {
-    tasks.withType<AbstractTestTask>().configureEach {
-        testLogging {
-            events.addAll(
-                listOf(
-                    TestLogEvent.FAILED,
-                    TestLogEvent.PASSED,
-                    TestLogEvent.SKIPPED,
-                    TestLogEvent.STANDARD_ERROR,
-                    TestLogEvent.STANDARD_OUT,
-                ),
-            )
-            exceptionFormat = TestExceptionFormat.FULL
-        }
+  tasks.withType<AbstractTestTask>().configureEach {
+    testLogging {
+      events.addAll(
+        listOf(
+          TestLogEvent.FAILED,
+          TestLogEvent.PASSED,
+          TestLogEvent.SKIPPED,
+          TestLogEvent.STANDARD_ERROR,
+          TestLogEvent.STANDARD_OUT,
+        ),
+      )
+      exceptionFormat = TestExceptionFormat.FULL
     }
+  }
 }

@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -23,6 +24,9 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlin.collections.component1
 import kotlin.collections.component2
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -30,6 +34,14 @@ import kotlin.uuid.Uuid
 @Suppress("ConstPropertyName")
 object PhantomWalletInfo {
   const val baseUrl = "https://phantom.app/ul/v1/"
+}
+
+
+@Suppress("SpellCheckingInspection")
+enum class NetworkCluster(val id: String) {
+  MainnetBeta("mainnet-beta"),
+  Testnet("testnet"),
+  Devnet("devnet"),
 }
 
 sealed class WalletConnectionStatus {
@@ -63,7 +75,6 @@ class WalletAdaptor(
   }
 
   private fun Uri.decodeWalletResponse(): WalletResponse {
-
     queryParam(WalletUrlQueryParams.errorCode)?.let { errorCode ->
       return WalletResponse.Error(
         errorCode = errorCode.toIntOrNull() ?: -1,
@@ -85,7 +96,6 @@ class WalletAdaptor(
 
     return when (methodEncoded) {
       WalletMethodName.connect -> {
-
         val walletPublicKey = queryParam(WalletUrlQueryParams.phantomEncryptionPublicKey)
           ?.decodeBase58()
           ?: return parseError("unable to decode ${WalletUrlQueryParams.phantomEncryptionPublicKey}")
@@ -112,51 +122,70 @@ class WalletAdaptor(
       }
 
       WalletMethodName.signTransaction -> {
-        TODO()
+        val connectionStatus = connectionStatus.ensureConnected()
+
+        val data = decryptPayloadOrNull(
+          sharedSecret = connectionStatus.sharedSecret,
+          message = boxedMessage,
+          nonce = nonce
+        )?.let {
+          Json.parseToJsonElement(it.decodeToString()) as JsonObject
+        } ?: return parseError("Unable to decode data")
+
+        val transaction = (data["transaction"] as? JsonPrimitive)?.content ?: return parseError("transaction missing")
+
+        SignTransaction(transaction.decodeBase58())
       }
 
       WalletMethodName.signMessage -> {
 
         val connectionStatus = connectionStatus.ensureConnected()
 
-        val data = decryptPayloadOrNull(sharedSecret = connectionStatus.sharedSecret, message = boxedMessage, nonce = nonce)?.let {
+        val data = decryptPayloadOrNull(
+          sharedSecret = connectionStatus.sharedSecret,
+          message = boxedMessage,
+          nonce = nonce
+        )?.let {
           Json.parseToJsonElement(it.decodeToString()) as JsonObject
         } ?: return parseError("Unable to decode data")
 
-        val signature  = (data["signature"] as? JsonPrimitive)?.content ?: return parseError("signature is missing")
+        val signature = (data["signature"] as? JsonPrimitive)?.content ?: return parseError("signature is missing")
 
         SignMessage(signature.decodeBase58())
       }
     }
   }
 
-
+  @Suppress("UNCHECKED_CAST")
   @OptIn(ExperimentalUuidApi::class)
-  private fun invoke(method: WalletMethod, callBack: (WalletResult<WalletResponse.Success>) -> Unit) {
+  fun <Result : WalletResponse.Success> invoke(
+    method: WalletMethod<Result>,
+    callBack: (WalletResult<Result>) -> Unit
+  ) {
     val uuid = Uuid.random()
-    callBacks[uuid] = callBack
+    callBacks[uuid] = callBack as (WalletResult<WalletResponse.Success>) -> Unit
     val url = method.encode(connectionStatus, dAppKeyPair, uuid, redirectLinkPrefix, appUrl)
     urlHandler.openUri(url)
   }
 
-  fun connect(cluster: String = "testnet", onResult: (WalletResult<Connect>) -> Unit) {
-    invoke(WalletMethod.Connect(cluster)) {
-      onResult(it.map { walletCallbackSuccess -> walletCallbackSuccess as Connect })
-    }
+  suspend fun <Result : WalletResponse.Success> invoke(
+    method: WalletMethod<Result>
+  ) = suspendCoroutine<WalletResult<Result>> { continuation ->
+    invoke(method, continuation::resume)
   }
 
-  fun signTransaction(content: ByteArray, onResult: (WalletResult<SignTransaction>) -> Unit) {
-    invoke(WalletMethod.SignTransaction(content)) {
-      onResult(it.map { walletCallbackSuccess -> walletCallbackSuccess as SignTransaction })
-    }
-  }
+  fun connect(args: WalletMethod.Connect, onResult: (WalletResult<Connect>) -> Unit) = invoke(args, onResult)
+  suspend fun connect(args: WalletMethod.Connect) = invoke(args)
 
-  fun signMessage(content: ByteArray, onResult: (WalletResult<SignMessage>) -> Unit) {
-    invoke(WalletMethod.SignMessage(content)) {
-      onResult(it.map { walletCallbackSuccess -> walletCallbackSuccess as SignMessage })
-    }
-  }
+  fun signTransaction(args: WalletMethod.SignTransaction, onResult: (WalletResult<SignTransaction>) -> Unit) =
+    invoke(args, onResult)
 
+  suspend fun signTransaction(args: WalletMethod.SignTransaction) = invoke(args)
+
+  fun signMessage(args: WalletMethod.SignMessage, onResult: (WalletResult<SignMessage>) -> Unit) =
+    invoke(args, onResult)
+
+  suspend fun signMessage(args: WalletMethod.SignMessage) = invoke(args)
 
   fun handleReturnFromWallet(url: String) {
     if (!url.startsWith(redirectLinkPrefix))
@@ -183,7 +212,7 @@ class WalletAdaptor(
 private fun WalletConnectionStatus.ensureConnected() = this as? Connected ?: error("wallet is not connected")
 
 @OptIn(ExperimentalUuidApi::class, ExperimentalUnsignedTypes::class)
-private fun WalletMethod.encode(
+private fun WalletMethod<*>.encode(
   connectionStatus: WalletConnectionStatus,
   dAppKeyPair: Nacl.KeyPair,
   requestId: Uuid,
@@ -198,7 +227,7 @@ private fun WalletMethod.encode(
     when (this@encode) {
       is WalletMethod.Connect -> {
         queryParam(WalletUrlQueryParams.dappEncryptionPublicKey, dAppKeyPair.publicKey.encodeToBase58String())
-        queryParam(WalletUrlQueryParams.cluster, cluster)
+        queryParam(WalletUrlQueryParams.cluster, cluster.id)
       }
 
       is WalletMethod.SignTransaction -> {

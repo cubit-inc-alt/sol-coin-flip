@@ -11,11 +11,10 @@ enum class WalletMethodName {
   signMessage
 }
 
-sealed class WalletMethod(val methodName: WalletMethodName) {
-  class Connect (val cluster: String): WalletMethod(WalletMethodName.connect)
-
-  class SignTransaction(val content: ByteArray) : WalletMethod(WalletMethodName.signTransaction)
-  class SignMessage(val content: ByteArray) : WalletMethod(WalletMethodName.signMessage)
+sealed class WalletMethod<Result : WalletResponse.Success>(val methodName: WalletMethodName) {
+  class Connect(val cluster: NetworkCluster) : WalletMethod<WalletResponse.Success.Connect>(WalletMethodName.connect)
+  class SignTransaction(val content: ByteArray) : WalletMethod<WalletResponse.Success.SignTransaction>(WalletMethodName.signTransaction)
+  class SignMessage(val content: ByteArray) : WalletMethod<WalletResponse.Success.SignMessage>(WalletMethodName.signMessage)
 }
 
 sealed interface WalletResponse {
@@ -23,8 +22,8 @@ sealed interface WalletResponse {
 
   sealed class Success : WalletResponse {
     class Connect(val userWalletPublicKey: String) : Success()
-    class SignTransaction(val content: ByteArray) : Success()
-    class SignMessage(val content: ByteArray) : Success()
+    class SignTransaction(val transaction: ByteArray) : Success()
+    class SignMessage(val signature: ByteArray) : Success()
   }
 }
 
