@@ -4,15 +4,20 @@ plugins {
   alias(libs.plugins.kotlinx.serilization)
 }
 kotlin {
+  sourceSets.androidMain.dependencies {
+    api(libs.bufferJvm)
+  }
+
   sourceSets.commonMain.dependencies {
     implementation(projects.core.resources)
 
-    implementation(libs.solana)
-    implementation(libs.solana.rpc)
-    implementation(libs.solana.base58)
+    api(libs.solana)
+    api(libs.solana.rpc)
+    api(libs.solana.base58)
 
-    implementation(libs.buffer)
-    implementation("io.github.funkatronics:multimult:0.2.3")
+    implementation("io.github.funkatronics:kborsh:0.1.1")
+
+    api(libs.buffer)
   }
 
 }

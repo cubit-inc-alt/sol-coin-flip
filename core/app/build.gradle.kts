@@ -19,11 +19,7 @@ kotlin {
 
     implementation(projects.core.features.welcome)
     implementation(projects.core.walletAdaptor)
-
-    implementation(projects.core.walletAdaptor)
-    implementation(libs.solana)
     implementation(libs.solana.rpc)
-    implementation(libs.solana.base58)
   }
 
 }

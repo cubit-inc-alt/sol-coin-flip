@@ -6,18 +6,25 @@ import com.github.kittinunf.result.Result
 
 @Suppress("EnumEntryName")
 enum class WalletMethodName {
-  connect
+  connect,
+  signTransaction,
+  signMessage
 }
 
 sealed class WalletMethod(val methodName: WalletMethodName) {
-  class Connect : WalletMethod(WalletMethodName.connect)
+  class Connect (val cluster: String): WalletMethod(WalletMethodName.connect)
+
+  class SignTransaction(val content: ByteArray) : WalletMethod(WalletMethodName.signTransaction)
+  class SignMessage(val content: ByteArray) : WalletMethod(WalletMethodName.signMessage)
 }
 
 sealed interface WalletResponse {
   class Error(val errorCode: Int, val errorMessage: String?) : kotlin.Error(errorMessage), WalletResponse
 
   sealed class Success : WalletResponse {
-    class Connect(val walletPublicKey: ByteArray, val session: String, val nonce: String) : Success()
+    class Connect(val userWalletPublicKey: String) : Success()
+    class SignTransaction(val content: ByteArray) : Success()
+    class SignMessage(val content: ByteArray) : Success()
   }
 }
 
@@ -29,8 +36,10 @@ internal object WalletUrlQueryParams {
   const val phantomEncryptionPublicKey = "phantom_encryption_public_key"
   const val data = "data"
   const val nonce = "nonce"
+  const val payload = "payload"
   const val redirectLink = "redirect_link"
   const val appUrl = "app_url"
+  const val cluster = "cluster"
 
   const val errorCode = "errorCode"
 

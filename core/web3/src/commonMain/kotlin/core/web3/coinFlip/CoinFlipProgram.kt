@@ -28,7 +28,7 @@ object CoinFlipProgram {
         programId = ID,
         keys = keys,
         data = Borsh.encodeToByteArray(
-          serializer = AnchorInstructionSerializer("flip"),
+          serializer = CoinFlipProgram.args.FlipCoin.serializer(),
           value = args,
         )
       )
@@ -47,4 +47,20 @@ object CoinFlipProgram {
       Nothing
     }
   }
+}
+
+
+object SPLSnoopInstructions {
+  fun noopInstruction(data: ByteArray): TransactionInstruction {
+    val keys = mutableListOf<AccountMeta>()
+    return TransactionInstruction(
+      PublicKey("noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV"),
+      keys, Borsh.encodeToByteArray(
+        AnchorInstructionSerializer("noop_instruction"),
+        Args_noopInstruction(data)
+      ))
+  }
+
+  @Serializable
+  class Args_noopInstruction(val data: ByteArray)
 }

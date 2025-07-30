@@ -8,7 +8,6 @@ android-targetSdk = "35"
 # Core Plugins
 agp = "8.9.0"
 #buffer = "1.4.2"
-kborsh = "0.1.0"
 kotlin = "2.1.0"
 androidx-activityCompose = "1.8.0"
 compose-plugin = "1.7.1"
@@ -77,8 +76,7 @@ composeBom = "2024.09.00"
 [libraries]
 # Core
 buffer = { module = "com.ditchoom:buffer", version.ref = "buffer" }
-bufferAndroid = { module = "com.ditchoom:buffer-android", version.ref = "buffer" }
-bufferIos = { module = "com.ditchoom:buffer-ios", version.ref = "buffer" }
+bufferJvm = { module = "com.ditchoom:buffer-jvm", version.ref = "buffer" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 buildkonfigCompiler = { module = "com.codingfeline.buildkonfig:buildkonfig-compiler", version.ref = "buildkonfig" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }
@@ -102,6 +100,7 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 
 solana = { module = "foundation.metaplex:solana", version.ref = "solana-kmp" }
+
 solana-rpc = { module = "foundation.metaplex:rpc", version.ref = "solana-kmp" }
 solana-eddsa = { module = "foundation.metaplex:solanaeddsa", version.ref = "solana-kmp" }
 solana-base58 = { module = "foundation.metaplex:base58", version.ref = "solana-kmp" }

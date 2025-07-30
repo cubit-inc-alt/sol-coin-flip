@@ -16,9 +16,8 @@ kotlin {
       api(libs.result)
       api(projects.core.models)
 
-      implementation(libs.solana)
-      implementation(libs.solana.rpc)
       implementation(libs.solana.base58)
+      api("com.solanamobile:web3-core:0.3.0-beta4")
     }
   }
 }

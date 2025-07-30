@@ -27,8 +27,6 @@ import core.ui.components.toast.ToastHost
 import core.ui.navigation.AppNavigation
 
 
-val walletAdaptor = WalletAdaptor()
-
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun AppUI(viewModel: AppUIViewModel) {

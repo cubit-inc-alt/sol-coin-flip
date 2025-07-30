@@ -79,10 +79,6 @@ dependencies {
   implementation(projects.core.walletAdaptor)
   implementation(libs.koin.core)
   implementation(libs.koin.android)
-
-  implementation(libs.solana)
-  implementation(libs.solana.rpc)
-  implementation(libs.solana.eddsa)
 }
 
 fun ApkSigningConfig.configureWithSigningKeyProperties(propFileName: String) {
@@ -94,3 +90,7 @@ fun ApkSigningConfig.configureWithSigningKeyProperties(propFileName: String) {
   keyPassword = keyProperties["keyPassword"] as String
 }
 
+
+configurations.all {
+  exclude("com.ditchoom", "buffer-android")
+}

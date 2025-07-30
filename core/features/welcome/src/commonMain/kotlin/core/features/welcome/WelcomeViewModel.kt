@@ -2,30 +2,41 @@ package core.features.welcome
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.kittinunf.result.onFailure
 import com.github.kittinunf.result.onSuccess
 import com.metaplex.signer.Signer
+import com.solana.transaction.Message
 import core.common.inject
 import core.sol.WalletAdaptor
-import core.web3.coinFlip.CoinFlipProgram
 
-import foundation.metaplex.base58.encodeToBase58String
 import foundation.metaplex.rpc.Commitment
 import foundation.metaplex.rpc.RPC
 import foundation.metaplex.rpc.RpcGetLatestBlockhashConfiguration
-import foundation.metaplex.rpc.RpcSendTransactionConfiguration
-import foundation.metaplex.solana.transactions.SolanaTransactionBuilder
+import foundation.metaplex.solana.programs.SystemProgram
+import foundation.metaplex.solana.transactions.SolanaTransaction
 import foundation.metaplex.solanapublickeys.PublicKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 
-class WalletSigner(override val publicKey: PublicKey) : Signer {
-  override suspend fun signMessage(message: ByteArray): ByteArray {
-    TODO()
+class WalletSigner(
+  override val publicKey: PublicKey,
+  val walletAdaptor: WalletAdaptor
+) : Signer {
+  @OptIn(InternalCoroutinesApi::class)
+  override suspend fun signMessage(message: ByteArray) = suspendCancellableCoroutine { continuation ->
+    walletAdaptor.signTransaction(message) { result ->
+      result
+        .onSuccess { continuation.tryResume(it.content) }
+        .onFailure { continuation.tryResumeWithException(it) }
+    }
   }
 }
+
 
 class WelcomeViewModel : ViewModel() {
   private var signers: List<Signer> = emptyList()
@@ -35,10 +46,10 @@ class WelcomeViewModel : ViewModel() {
   val walletAdaptor by inject<WalletAdaptor>()
 
   fun connect() {
-    walletAdaptor.connect { result ->
+    walletAdaptor.connect("mainnet-beta") { result ->
       result.onSuccess {
-        val publicKey = PublicKey(it.walletPublicKey.encodeToBase58String())
-        signers = listOf(WalletSigner(publicKey))
+        val publicKey = PublicKey(it.userWalletPublicKey)
+        signers = listOf(WalletSigner(publicKey, walletAdaptor))
         connectedAccount.value = publicKey
       }
     }
@@ -54,18 +65,25 @@ class WelcomeViewModel : ViewModel() {
         it.printStackTrace()
       }.getOrNull() ?: return@launch
 
-      val solanaInstruction = SolanaTransactionBuilder()
-        .addInstruction(CoinFlipProgram.methods.flip(account, CoinFlipProgram.args.FlipCoin(10.toULong())))
-        .setRecentBlockHash(recentBlockHash.blockhash)
-        .setSigners(signers)
-        .build()
+      val transaction = SolanaTransaction().apply {
+        feePayer = signers.first().publicKey
+        recentBlockhash = recentBlockHash.blockhash
+        addInstruction(
+          SystemProgram.transfer(
+            fromPublicKey = feePayer!!,
+            toPublickKey = PublicKey("EJB2o9rjoq6TEmTGNY2Uyb3oSiHut4scZgY5swRHwrVP"),
+            lamports = 10
+          )
+        )
+      }
 
-      val result = rpcConnection.sendTransaction(
-        transaction = solanaInstruction.serialize(),
-        configuration = RpcSendTransactionConfiguration(commitment = Commitment.confirmed)
-      )
+      val signed = transaction.compileMessage()
 
-      println(result.encodeToBase58String())
+      runCatching {
+        walletAdaptor.signTransaction(signed.serialize()){
+          println(it)
+        }
+      }
     }
   }
 }
