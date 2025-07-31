@@ -1,16 +1,11 @@
 package core.app
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,11 +16,14 @@ import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import core.designSystem.theme.AppTheme
+import core.features.WeeklyRanking.ranking.WeeklyRankingScreen
+import core.features.main.MainScreen
 import core.features.welcome.WelcomeScreen
 import core.sol.LocalWalletAdaptor
 import core.sol.WalletAdaptor
 import core.ui.components.toast.ToastHost
 import core.ui.navigation.AppNavigation
+import org.koin.compose.koinInject
 
 
 val walletAdaptor = WalletAdaptor()
@@ -52,17 +50,45 @@ fun AppUI(viewModel: AppUIViewModel) {
       Box(Modifier.fillMaxSize()) {
         ToastHost {
           NavHost(
-            navController = navigator,
-            startDestination = AppNavigation.WelcomeScreen
+            navController = navigator, startDestination = AppNavigation.WelcomeScreen
           ) {
             composable<AppNavigation.WelcomeScreen> {
-              WelcomeScreen()
+              WelcomeScreen {
+                navigator.navigate(AppNavigation.MainScreen) {
+                  popUpTo(AppNavigation.WelcomeScreen) {
+                    inclusive = true
+                  }
+                  launchSingleTop = true
+                }
+              }
+            }
+
+            composable<AppNavigation.MainScreen> {
+              MainScreen(koinInject()) {
+                navigator.navigate(it) {
+                  popUpTo(AppNavigation.MainScreen) {
+                    inclusive = false
+                  }
+                }
+              }
+            }
+
+            composable<AppNavigation.WeeklyRankingScreen> {
+              WeeklyRankingScreen(koinInject()) {
+                when (it) {
+                  AppNavigation.PopBack -> navigator.popBackStack()
+                  else -> navigator.navigate(it) {
+                    popUpTo(AppNavigation.WeeklyRankingScreen) {
+                      inclusive = false
+                    }
+                  }
+                }
+              }
+
             }
           }
         }
       }
     }
   }
-
-
 }

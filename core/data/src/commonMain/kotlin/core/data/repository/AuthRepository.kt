@@ -1,14 +1,14 @@
 package core.data.repository
 
-import kotlinx.coroutines.flow.Flow
 import core.database.RoomDB
 import core.datastore.DataStore
-import core.network.PandaRemoteApi
+import core.network.AppRemoteApi
+import kotlinx.coroutines.flow.Flow
 
 
 class AuthRepository(
     private val dataStore: DataStore,
-    private val remoteApi: PandaRemoteApi,
+    private val remoteApi: AppRemoteApi,
     private val roomDB: RoomDB,
 ) {
     fun getIsLoggedIn(): Boolean {

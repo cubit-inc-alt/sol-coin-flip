@@ -6,12 +6,12 @@ import org.koin.core.context.startKoin
 import core.app.di.appModule
 import core.app.onAppStarted
 
-class PandaApplication : Application() {
+class CoinFlipApplication : Application() {
   override fun onCreate() {
     super.onCreate()
     onAppStarted()
     startKoin {
-      androidContext(this@PandaApplication)
+      androidContext(this@CoinFlipApplication)
       modules(
         appModule()
       )

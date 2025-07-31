@@ -1,9 +1,54 @@
 <resources>
 
-    <string name="app_name">Panda</string>
+  <string name="app_name">CoinFlip</string>
 
-    <!--Api  Error Messages -->
-    <string name="operation_completed_successfully">Operation completed successfully</string>
-    <string name="you_are_not_authorized_to_perform_this_action">You are not authorized to perform this action</string>
+  <!--Api  Error Messages -->
+  <string name="operation_completed_successfully">Operation completed successfully</string>
+  <string name="you_are_not_authorized_to_perform_this_action">You are not authorized to perform this action</string>
+
+  <!--Welcome Screen -->
+  <string name="welcome_intro">Seeker Coin Flip:\nFast &amp; Fun</string>
+  <string name="welcome_desc">It has long been recognised that when assessing design and composition.</string>
+  <string name="agree_terms">I agree to the</string>
+  <string name="terms_of_service">Terms of Service</string>
+  <string name="connect_wallet">Connect wallet</string>
+  <string name="connect_your_wallet">Connect your wallet</string>
+  <string name="metamask_sign_in_title">Seeker Wants to Use MetaMask to Sign In</string>
+  <string name="metamask_sign_in_description">This allows the app and website to share information about you</string>
+
+  <!--Wallet Connect -->
+  <string name="wallet_connect_desc">Ensure your wallet is unlocked and ready to be used</string>
+  <string name="meta_mask">MetaMask</string>
+  <string name="wallet_connect">WalletConnect</string>
+  <string name="trust_wallet">TrustWallet</string>
+
+  <string name="real_sol_transaction">Real SOL token wager</string>
+  <string name="real_transaction_warning">This is a real transaction using tokens</string>
+  <string name="keep_going_reward">Keep it going for bigger rewards!</string>
+  <string name="flip_warning">Each flip is a real token wager. If you win, your stake is doubled; if you lose, it’s gone.</string>
+
+
+  <!-- Labels -->
+  <string name="cancel">Cancel</string>
+  <string name="continue">Continue</string>
+  <string name="xp">XP</string>
+  <string name="skr">SKR</string>
+  <string name="sol">SOL</string>
+  <string name="jup">JUP</string>
+  <string name="confirm">Confirm</string>
+  <string name="heads">Heads!</string>
+  <string name="tails">Tails!</string>
+  <string name="win_streak">Win Streak!</string>
+  <string name="tap_to_flip">Tap To Flip</string>
+  <string name="wager">Wager:</string>
+  <string name="weekly_ranking">Weekly Ranking</string>
+  <string name="your_rank">Your Rank</string>
+  <string name="tap_to_continue">Tap to Continue</string>
+  <string name="recent_plays">RECENT PLAYS</string>
+  <string name="minutes_ago">minutes ago</string>
+  <string name="amount">Amount:</string>
+  <string name="confirm_wager">Confirm Wager</string>
+  <string name="token">Token:</string>
+  <string name="possible_outcome">Possible outcome:</string>
 
 </resources>

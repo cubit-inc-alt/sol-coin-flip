@@ -21,108 +21,106 @@ import core.designSystem.theme.AppTheme.typography
 
 @Composable
 fun DefaultOutlinedTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    modifier: Modifier = Modifier,
-    isError: Boolean = false,
-    errorText: String? = null,
-    enabled: Boolean = true,
-    leadingIcon: Painter? = null,
-    leadingIconView: (@Composable () -> Unit)? = null,
-    trailingIcon: (@Composable () -> Unit)? = null,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-    singleLine: Boolean = true,
+  value: String,
+  onValueChange: (String) -> Unit,
+  label: String,
+  modifier: Modifier = Modifier,
+  isError: Boolean = false,
+  errorText: String? = null,
+  enabled: Boolean = true,
+  leadingIcon: Painter? = null,
+  leadingIconView: (@Composable () -> Unit)? = null,
+  trailingIcon: (@Composable () -> Unit)? = null,
+  visualTransformation: VisualTransformation = VisualTransformation.None,
+  keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+  keyboardActions: KeyboardActions = KeyboardActions.Default,
+  singleLine: Boolean = true,
 ) {
-    Column(modifier = modifier) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = {
-                Text(text = label, color = colors.onSurfaceVariant)
-            },
-            isError = isError,
-            modifier = Modifier.fillMaxWidth(),
-            leadingIcon = leadingIcon?.let {
-                {
-                    Icon(
-                        painter = it,
-                        contentDescription = null,
-                        modifier = Modifier.size(size_24)
-                    )
-                }
-            }?:leadingIconView,
-            enabled = enabled,
-            trailingIcon = trailingIcon,
-            visualTransformation = visualTransformation,
-            keyboardOptions = keyboardOptions,
-            keyboardActions = keyboardActions,
-            singleLine = singleLine
-        )
-        if (!errorText.isNullOrBlank()) {
-            AnimatedVisibility(visible = true) {
-                Text(
-                    text = errorText,
-                    color = colors.error,
-                    style = typography.body.SmallNormal,
-                )
-            }
+  Column(modifier = modifier) {
+    OutlinedTextField(
+      value = value,
+      onValueChange = onValueChange,
+      label = {
+        Text(text = label, color = colors.onSurfaceVariant)
+      },
+      isError = isError,
+      modifier = Modifier.fillMaxWidth(),
+      leadingIcon = leadingIcon?.let {
+        {
+          Icon(
+            painter = it,
+            contentDescription = null,
+            modifier = Modifier.size(size_24)
+          )
         }
+      } ?: leadingIconView,
+      enabled = enabled,
+      trailingIcon = trailingIcon,
+      visualTransformation = visualTransformation,
+      keyboardOptions = keyboardOptions,
+      keyboardActions = keyboardActions,
+      singleLine = singleLine
+    )
+    if (!errorText.isNullOrBlank()) {
+      AnimatedVisibility(visible = true) {
+        Text(
+          text = errorText,
+          color = colors.error,
+        )
+      }
     }
+  }
 }
 
 
 @Composable
 fun SimpleOutlinedTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    leadingIcon: Painter? = null,
-    leadingIconView: (@Composable () -> Unit)? = null,
-    trailingIcon: (@Composable () -> Unit)? = null,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-    singleLine: Boolean = true,
+  value: String,
+  onValueChange: (String) -> Unit,
+  label: String,
+  modifier: Modifier = Modifier,
+  enabled: Boolean = true,
+  leadingIcon: Painter? = null,
+  leadingIconView: (@Composable () -> Unit)? = null,
+  trailingIcon: (@Composable () -> Unit)? = null,
+  visualTransformation: VisualTransformation = VisualTransformation.None,
+  keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+  keyboardActions: KeyboardActions = KeyboardActions.Default,
+  singleLine: Boolean = true,
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = {
-            Text(text = label, color = colors.onSurfaceVariant)
-        },
-        modifier = modifier,
-        enabled = enabled,
-        leadingIcon = leadingIcon?.let {
-            {
-                Icon(
-                    painter = it,
-                    contentDescription = null,
-                    modifier = Modifier.size(size_24)
-                )
-            }
-        } ?: leadingIconView,
-        trailingIcon = trailingIcon,
-        visualTransformation = visualTransformation,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        singleLine = singleLine
-    )
+  OutlinedTextField(
+    value = value,
+    onValueChange = onValueChange,
+    label = {
+      Text(text = label, color = colors.onSurfaceVariant)
+    },
+    modifier = modifier,
+    enabled = enabled,
+    leadingIcon = leadingIcon?.let {
+      {
+        Icon(
+          painter = it,
+          contentDescription = null,
+          modifier = Modifier.size(size_24)
+        )
+      }
+    } ?: leadingIconView,
+    trailingIcon = trailingIcon,
+    visualTransformation = visualTransformation,
+    keyboardOptions = keyboardOptions,
+    keyboardActions = keyboardActions,
+    singleLine = singleLine
+  )
 
 }
 
 
-
 val nonFocusableTextFieldColor: TextFieldColors
-    @Composable get() = colors(
-        disabledBorderColor = colors.outline,
-        disabledLeadingIconColor = colors.onSurfaceVariant,
-        disabledTrailingIconColor = colors.onSurfaceVariant,
-        disabledPlaceholderColor = colors.onSurface,
-        disabledLabelColor = colors.onSurface,
-        disabledTextColor = colors.onSurface
-    )
+  @Composable get() = colors(
+    disabledBorderColor = colors.outline,
+    disabledLeadingIconColor = colors.onSurfaceVariant,
+    disabledTrailingIconColor = colors.onSurfaceVariant,
+    disabledPlaceholderColor = colors.onSurface,
+    disabledLabelColor = colors.onSurface,
+    disabledTextColor = colors.onSurface
+  )

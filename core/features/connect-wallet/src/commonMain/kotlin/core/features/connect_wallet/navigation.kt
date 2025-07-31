@@ -1,7 +1,6 @@
-package core.features.welcome
+package core.features.connect_wallet
 
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.NavHost
 
 
 fun NavGraphBuilder.walletConnectDestination() {

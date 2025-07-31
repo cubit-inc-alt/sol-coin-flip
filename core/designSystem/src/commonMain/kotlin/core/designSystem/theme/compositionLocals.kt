@@ -1,12 +1,13 @@
 package core.designSystem.theme
 
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 
 
 internal val LocalAppColors = compositionLocalOf<AppColors> {
-    error("PandaColors is not provided")
+    error("CoinFlipColors is not provided")
 }
 
 internal val LocalThemeMode = compositionLocalOf<ThemeMode> {
