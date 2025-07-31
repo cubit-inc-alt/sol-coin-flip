@@ -11,19 +11,19 @@ import androidx.core.view.WindowCompat
 
 @Composable
 internal actual fun SyncOsTheme(userThemeMode: UserThemeMode, themeMode: ThemeMode) {
-    val activity = LocalContext.current as? Activity
-    val view = LocalView.current
-    val colors = AppTheme.colors
-    activity?.let {
-        LaunchedEffect(themeMode) {
-            WindowCompat.getInsetsController(activity.window, view).apply {
-                isAppearanceLightStatusBars = !themeMode.isDark()
-                isAppearanceLightNavigationBars = !themeMode.isDark()
-                activity.window.setBackgroundDrawable(colors.background.toArgb().toDrawable())
+  val activity = LocalContext.current as? Activity
+  val view = LocalView.current
+  val colors = AppTheme.colors
 
-            }
-        }
+  activity?.let {
+    LaunchedEffect(themeMode) {
+      WindowCompat.getInsetsController(activity.window, view).apply {
+        isAppearanceLightStatusBars = !themeMode.isDark()
+        isAppearanceLightNavigationBars = !themeMode.isDark()
+        activity.window.setBackgroundDrawable(colors.background.toArgb().toDrawable())
+      }
     }
+  }
 }
 
 

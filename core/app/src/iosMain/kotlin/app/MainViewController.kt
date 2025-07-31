@@ -7,9 +7,7 @@ import core.app.AppUIViewModel
 import org.koin.core.context.startKoin
 import core.app.di.appModule
 import core.app.onAppStarted
-import core.app.walletAdaptor
 import core.common.inject
-import core.sol.WalletAdaptor
 
 @Suppress("unused", "FunctionName")
 fun MainViewController() = ComposeUIViewController(
@@ -26,8 +24,4 @@ fun MainViewController() = ComposeUIViewController(
 
   val viewModel by inject<AppUIViewModel>()
   AppUI(viewModel)
-}
-
-object WalletAdaptor {
-  val adaptor by inject<WalletAdaptor>()
 }

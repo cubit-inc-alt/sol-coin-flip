@@ -18,6 +18,7 @@ kotlin {
 
 
     implementation(projects.core.features.welcome)
+    implementation(projects.core.features.main)
     implementation(projects.core.walletAdaptor)
     implementation(libs.solana.rpc)
   }

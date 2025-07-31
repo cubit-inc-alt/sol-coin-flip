@@ -55,12 +55,11 @@ internal fun ToastView(toast: Toast, onToastHide: (Toast) -> Unit) {
         }
 
         toast.textIcon?.also {
-            Text(it, style = typography.body.MediumNormal)
+            Text(it, )
         }
 
         Text(
             toast.message?.getMessage ?: toast.messageRes?.res ?: "",
-            style = typography.body.MediumNormal,
             color = toast.typeColor,
         )
     }

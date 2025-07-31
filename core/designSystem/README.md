@@ -1,3 +1,3 @@
 ## `:core:designSystem`
 
-Panda design system
+CoinFlip design system

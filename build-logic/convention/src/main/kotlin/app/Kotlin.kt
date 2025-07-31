@@ -31,8 +31,7 @@ fun KotlinCompilationTask<*>.configureKotlinCompilation() {
     freeCompilerArgs.addAll(
       listOf(
         "-Xcontext-receivers",
-        "-Xexpect-actual-classes",
-        "-Xnested-type-aliases"
+        "-Xexpect-actual-classes"
       ),
     )
     optIn.addAll(
