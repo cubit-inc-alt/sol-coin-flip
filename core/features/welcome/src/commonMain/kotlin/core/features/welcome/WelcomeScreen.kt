@@ -25,6 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import core.common.injecting
 import core.designSystem.elements.DefaultButton
 import core.designSystem.theme.AppDimensions.size_16
 import core.designSystem.theme.AppDimensions.size_20
@@ -68,16 +71,25 @@ fun WelcomeScreen(
   navigateToNext: (AppNavigation) -> Unit
 ) {
 
+  val welcomeViewModel by injecting<WelcomeViewModel>()
+
   var isTermsAndConditionChecked by rememberMutableStateOf(false)
   var showChooseWallet by rememberMutableStateOf(false)
 
+  val onWalletConnected by welcomeViewModel.onWalletConnected.collectAsStateWithLifecycle()
+
+  LaunchedEffect(onWalletConnected) {
+    onWalletConnected.actUpOn {
+      navigateToNext(AppNavigation.MainScreen)
+    }
+  }
+
   if (showChooseWallet) {
     SelectWalletBottomSheet(
-      onDismissRequest = {
-        showChooseWallet = it
-      }, onSelectWallet = {
+      onDismissRequest = { showChooseWallet = false },
+      onSelectWallet = {
         showChooseWallet = false
-        navigateToNext(AppNavigation.MainScreen)
+        welcomeViewModel.connect(it)
       }
     )
   }

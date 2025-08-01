@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -34,14 +36,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.key.Key.Companion.P
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import core.designSystem.elements.DefaultButton
 import core.designSystem.elements.DefaultTonalButton
 import core.designSystem.theme.AppColors
 import core.designSystem.theme.AppColors.Companion.infoBlackBg
@@ -61,12 +63,10 @@ import core.features.main.customview.ConfirmWagerBottomSheet
 import core.features.main.customview.PlayEndAlert
 import core.resources.generated.resources.Res
 import core.resources.generated.resources.background_blurred_light
-import core.resources.generated.resources.background_button_small
 import core.resources.generated.resources.btn_tap_to_flip
 import core.resources.generated.resources.flip_warning
 import core.resources.generated.resources.ic_active
 import core.resources.generated.resources.ic_info
-import core.resources.generated.resources.ic_trophy
 import core.resources.generated.resources.ic_wallet
 import core.resources.generated.resources.img_coin
 import core.resources.generated.resources.jup
@@ -77,37 +77,53 @@ import core.resources.generated.resources.sol
 import core.resources.generated.resources.wager
 import core.ui.components.CustomSlider
 import core.ui.navigation.AppNavigation
+import core.ui.rememberDerivedStateOf
 import core.ui.rememberMutableStateOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import kotlin.math.round
+
+
+fun Float.formatAsCurrency(): String {
+
+  val fraction = ((this - toInt()) * 100)
+    .toInt()
+    .toString()
+    .padStart(2, '0')
+
+  return "${toInt().toString().padStart(2, '0')}.$fraction"
+}
 
 
 @Composable
 fun MainScreen(
-  viewModel: MainScreenViewModel, navigateToNext: (AppNavigation) -> Unit
+  viewModel: MainScreenViewModel,
+  navigateToNext: (AppNavigation) -> Unit
 ) {
-print("here MainScreen")
   val state by viewModel.state.collectAsState()
   val playList by viewModel.playList.collectAsState()
   var showConfirmWager by rememberMutableStateOf<Boolean?>(false)
   var showPlayEndAlert by rememberMutableStateOf<Boolean?>(false)
-  var formattedWager by rememberMutableStateOf<String>("")
-  LaunchedEffect(state.wager) {
-    formattedWager = " " + (round(state.wager?.times(100f) ?: 0f) / 100).toString() + " SOL"
+
+  val formattedWager by rememberDerivedStateOf {
+    state.wager.formatAsCurrency().let { "$it SOL" }
   }
+
+  val formattedOutcome by rememberDerivedStateOf {
+    "+${state.wager.times(2).formatAsCurrency()} SOL / -${state.wager.formatAsCurrency()} SOL"
+  }
+
   if (showConfirmWager == true) {
     ConfirmWagerBottomSheet(
       amount = formattedWager,
       token = "SOL",
-      outcomes = " +2.50 SOL / -1.25 SOL",
+      outcomes = formattedOutcome,
       onDismissRequest = {
         showConfirmWager = it
       },
       onConfirmWager = {
         showConfirmWager = null
-        showPlayEndAlert = true
+        viewModel.flipCoin()
       })
   }
 
@@ -118,7 +134,8 @@ print("here MainScreen")
       showPlayEndAlert = null
     }
   }
-  Scaffold {
+
+  Scaffold { padding ->
     Box(Modifier.fillMaxSize()) {
       Image(
         painter = painterResource(Res.drawable.background_blurred_light),
@@ -127,23 +144,25 @@ print("here MainScreen")
         modifier = Modifier.fillMaxSize()
       )
       Column(
-        modifier = Modifier.fillMaxSize().padding(it).padding(size_16),
+        modifier = Modifier.fillMaxSize().padding(padding).padding(size_16),
       ) {
         Row(
           Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.spacedBy(size_16),
           verticalAlignment = Alignment.CenterVertically
         ) {
-          DefaultButton(
-            Modifier.wrapContentSize(),
-            text = "${state.achievement ?: 0} XP",
-            startIcon = Res.drawable.ic_trophy,
-            padding = PaddingValues(horizontal = size_12, vertical = size_8),
-            contentColor = Color.Black,
-            backgroundImage = Res.drawable.background_button_small
-          ) {
-navigateToNext(AppNavigation.WeeklyRankingScreen)
-          }
+
+//          DefaultButton(
+//            Modifier.wrapContentSize(),
+//            text = "${state.achievement ?: 0} XP",
+//            startIcon = Res.drawable.ic_trophy,
+//            padding = PaddingValues(horizontal = size_12, vertical = size_8),
+//            contentColor = Color.Black,
+//            backgroundImage = Res.drawable.background_button_small
+//          ) {
+//            navigateToNext(AppNavigation.WeeklyRankingScreen)
+//          }
+
           DefaultTonalButton(
             Modifier.wrapContentSize(),
             text = null,
@@ -154,26 +173,34 @@ navigateToNext(AppNavigation.WeeklyRankingScreen)
           ) {
 
           }
+
+          Spacer(modifier = Modifier.weight(1f))
+
           Text(
-            text = state.id,
+            text = state.accountText,
             style = typography.body.LargeSemiBold,
             color = colors.secondary,
-            modifier = Modifier.wrapContentHeight().weight(1f),
+            modifier = Modifier.wrapContentWidth(),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.End
           )
         }
 
         var selectedTabIndex by rememberMutableStateOf(0)
         val pagerState = rememberPagerState(initialPage = 1, pageCount = { 3 })
+
         val tabs = listOf(
           stringResource(Res.string.skr),
           stringResource(Res.string.sol),
           stringResource(Res.string.jup),
         )
+
         val coroutineScope = rememberCoroutineScope()
         LaunchedEffect(pagerState.currentPage) {
           selectedTabIndex = pagerState.currentPage
         }
+
         TabRow(
           modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(vertical = size_12),
           selectedTabIndex = selectedTabIndex,
@@ -195,22 +222,17 @@ navigateToNext(AppNavigation.WeeklyRankingScreen)
                 coroutineScope.launch {
                   pagerState.scrollToPage(index)
                 }
-
               },
               text = {
                 Text(
                   text = title,
                   style = typography.heading.DefaultSemiBold,
                   color = if (selectedTabIndex == index) LocalContentColor.current else colors.secondary
-
                 )
               },
             )
           }
-
         }
-
-
         HorizontalPager(
           state = pagerState, modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(top = size_12)
         ) { page ->
@@ -275,17 +297,18 @@ navigateToNext(AppNavigation.WeeklyRankingScreen)
                       modifier = Modifier.fillMaxWidth().padding(top = size_30),
                       horizontalArrangement = Arrangement.Center
                     ) {
+
                       Text(text = stringResource(Res.string.wager), style = typography.heading.DefaultSemiBold)
 
                       Text(
                         text = formattedWager,
                         style = typography.heading.DefaultBold,
-                        color = colors.primary
+                        color = colors.primary,
+                        modifier = Modifier.padding(start = 2.dp)
                       )
                     }
 
-
-                    CustomSlider(state.wager?.toFloat() ?: 0.0f) {
+                    CustomSlider(state.wager) {
                       viewModel.setWager(it)
                     }
                     Text(

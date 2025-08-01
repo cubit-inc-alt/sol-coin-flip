@@ -52,7 +52,6 @@ fun ConfirmWagerBottomSheet(
   token: String,
   outcomes: String,
   onConfirmWager: (Float) -> Unit,
-  isDismissible: Boolean = true,
   onDismissRequest: (Boolean) -> Unit = {},
 ) {
   var selectedWager by rememberMutableStateOf<Float>(0.0f)

@@ -9,10 +9,15 @@ import com.github.kittinunf.result.onSuccess
 import com.github.kittinunf.result.runCatching
 import com.metaplex.signer.Signer
 import core.common.inject
+import core.features.connectWallet.selectWallet.Wallet
 import core.sol.NetworkCluster
 import core.sol.WalletAdaptor
 import core.sol.WalletMethod
 import core.sol.WalletMethod.*
+import core.ui.SingleEvent
+import core.ui.delegates.setValue
+import core.ui.delegates.stateOf
+import core.ui.toEvent
 import core.web3.coinFlip.CoinFlipProgram
 import foundation.metaplex.base58.encodeToBase58String
 import foundation.metaplex.rpc.Commitment
@@ -49,57 +54,20 @@ class WalletSigner(
 
 class WelcomeViewModel : ViewModel() {
   val connectedAccount = MutableStateFlow<PublicKey?>(null)
-  val rpcConnection by inject<RPC>()
   val walletAdaptor by inject<WalletAdaptor>()
+  val onWalletConnected = stateOf(SingleEvent<Unit>(null))
 
-  fun connect() = viewModelScope.launch(Dispatchers.IO) {
-    val result = walletAdaptor.invoke(WalletMethod.Connect(NetworkCluster.Devnet))
+  fun connect(
+    wallet: Wallet
+  ) = viewModelScope.launch(Dispatchers.IO) {
+    val result = walletAdaptor.invoke(Connect(NetworkCluster.Devnet))
 
     when (result) {
       is Result.Failure -> println("error ${result.error}")
       is Result.Success -> {
         val publicKey = PublicKey(result.value.userWalletPublicKey)
         connectedAccount.value = publicKey
-      }
-    }
-  }
-
-  fun flipCoin() {
-    val account = connectedAccount.value ?: return
-
-    viewModelScope.launch(Dispatchers.IO) {
-
-      val recentTnx = runCatching {
-        rpcConnection.getLatestBlockhash(RpcGetLatestBlockhashConfiguration(commitment = Commitment.finalized))
-      }.getOrNull() ?: return@launch
-
-      val transaction = SolanaTransaction().apply {
-        feePayer = account
-        recentBlockhash = recentTnx.blockhash
-        addInstruction(CoinFlipProgram.methods.flip(account, CoinFlipProgram.args.FlipCoin(10.toULong())))
-      }
-
-      val serialized: SerializedTransaction = transaction
-        .serialize(SerializeConfig(requireAllSignatures = false, verifySignatures = false))
-
-      when (val result = walletAdaptor.signTransaction(SignTransaction(serialized))) {
-        is Result.Failure -> println("flipCoin:error ${result.error}")
-        is Result.Success -> sendTransaction(result.value.transaction)
-      }
-    }
-  }
-  private fun sendTransaction(tnx: ByteArray) = viewModelScope.launch(Dispatchers.IO) {
-
-    println("sending tnx")
-
-    val result = runCatching {
-      rpcConnection.sendTransaction(tnx, RpcSendTransactionConfiguration(commitment = Commitment.finalized))
-    }
-
-    when (result) {
-      is Result.Failure -> println("sendTransaction:error ${result.error}")
-      is Result.Success -> {
-        println("tnx sent ${result.value?.decodeToString()}")
+        onWalletConnected.setValue(Unit.toEvent())
       }
     }
   }

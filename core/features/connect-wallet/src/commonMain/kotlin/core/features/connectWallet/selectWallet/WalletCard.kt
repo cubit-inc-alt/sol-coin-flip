@@ -24,40 +24,54 @@ import core.designSystem.theme.AppDimensions.size_40
 import core.designSystem.theme.AppDimensions.size_8
 import core.designSystem.theme.AppTheme.colors
 import core.designSystem.theme.AppTheme.typography
+import core.resources.generated.resources.Res
+import core.resources.generated.resources.wallet_coming_soon
+import core.resources.res
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun WalletCard(
-    modifier: Modifier,
-    wallet: Wallet,
-    selectedWallet: Wallet?,
-    onSelectWallet: (Wallet) -> Unit,
+  modifier: Modifier,
+  wallet: Wallet,
+  selectedWallet: Wallet?,
+  onSelectWallet: (Wallet) -> Unit,
 ) {
-    val selectedModifier = Modifier
-        .clip(RoundedCornerShape(size_16))
-        .background(colors.surface)
-        .border(
-            width = 1.dp,
-            color = Color.Black,
-            shape = RoundedCornerShape(size_24)
-        )
-        .clipToBounds()
+  val selectedModifier = Modifier
+    .clip(RoundedCornerShape(size_16))
+    .background(colors.surface)
+    .border(
+      width = 1.dp,
+      color = Color.Black,
+      shape = RoundedCornerShape(size_24)
+    )
+    .clip(RoundedCornerShape(size_16))
 
-    val finalModifier = if (selectedWallet == wallet) modifier.then(selectedModifier) else modifier
 
-    Column(
-        finalModifier.clickable {
-            onSelectWallet(wallet)
-        }.padding(vertical = size_12),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(size_8)
-    ) {
-        Image(
-            painter = painterResource(wallet.image),
-            contentDescription = "",
-            modifier = Modifier.size(size_40)
-        )
-        Text(text = stringResource(wallet.title), style = typography.body.DefaultSemiBold)
-    }
+  val finalModifier = if (selectedWallet == wallet) modifier.then(selectedModifier) else modifier
+
+  Column(
+    finalModifier
+      .clickable(wallet.available) {
+        onSelectWallet(wallet)
+      }
+      .padding(vertical = size_16),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(size_8)
+  ) {
+    Image(
+      painter = painterResource(wallet.image),
+      contentDescription = "",
+      modifier = Modifier.size(size_40)
+    )
+
+    Text(text = stringResource(wallet.title), style = typography.body.DefaultSemiBold)
+
+    if (!wallet.available)
+      Text(
+        text = Res.string.wallet_coming_soon.res,
+        style = typography.body.SmallRegular,
+        color = colors.onBackground.copy(alpha = 0.5f)
+      )
+  }
 }

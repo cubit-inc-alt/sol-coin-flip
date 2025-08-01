@@ -7,5 +7,8 @@ plugins {
 kotlin {
   sourceSets.commonMain.dependencies {
     implementation(projects.core.resources)
+
+    implementation(projects.core.walletAdaptor)
+    implementation(projects.core.web3)
   }
 }

@@ -26,7 +26,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SelectWalletBottomSheet(
   onSelectWallet: (Wallet) -> Unit,
-  isDismissible: Boolean = true,
   onDismissRequest: (Boolean) -> Unit = {},
 ) {
   var selectedWallet by rememberMutableStateOf<Wallet?>(null)
@@ -46,14 +45,15 @@ fun SelectWalletBottomSheet(
         modifier = Modifier.fillMaxWidth().padding(vertical = size_24),
         horizontalArrangement = Arrangement.spacedBy(size_8)
       ) {
+
         WalletCard(
           modifier = Modifier
             .wrapContentHeight().weight(1f),
-          wallet = Wallet.MetaMask,
+          wallet = Wallet.Phantom,
           selectedWallet = selectedWallet,
-          onSelectWallet = { selectedWallet = Wallet.MetaMask }
-
+          onSelectWallet = { selectedWallet = Wallet.Phantom }
         )
+
         WalletCard(
           modifier = Modifier
             .wrapContentHeight().weight(1f),
@@ -71,6 +71,7 @@ fun SelectWalletBottomSheet(
         )
       }
     }) {
+
     DefaultButton(
       modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(top = size_12),
       text = stringResource(Res.string.connect_your_wallet),
