@@ -4,19 +4,13 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.core.uri.Uri
 import androidx.core.uri.UriUtils
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.map
 import core.database.extensions.json
-import core.sol.WalletConnectionStatus.*
+import core.sol.ConnectionStatus.*
 import core.sol.WalletResponse.Success.*
 import core.sol.nacl.NaClLowLevel
 import core.sol.nacl.Nacl
 import foundation.metaplex.base58.decodeBase58
 import foundation.metaplex.base58.encodeToBase58String
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -26,7 +20,6 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -44,35 +37,28 @@ enum class NetworkCluster(val id: String) {
   Devnet("devnet"),
 }
 
-sealed class WalletConnectionStatus {
+sealed class ConnectionStatus {
   class Connected(
     val sharedSecret: ByteArray,
     val session: String,
-    val walletPublicKey: ByteArray,
     val userAccountPublicKey: String
-  ) : WalletConnectionStatus()
+  ) : ConnectionStatus()
 
-  object Disconnected : WalletConnectionStatus()
+  object Disconnected : ConnectionStatus()
 }
 
 @OptIn(ExperimentalUuidApi::class, ExperimentalUnsignedTypes::class)
 class WalletAdaptor(
+  val dAppKeyPair: Nacl.KeyPair,
+  val onConnected: (Nacl.KeyPair, Connected) -> Unit,
   private val appUrl: String = "https://cubit.com.np",
-  private val redirectLinkPrefix: String = "flipper://wallet"
+  private val redirectLinkPrefix: String = "flipper://wallet",
+  var connectionStatus: ConnectionStatus = Disconnected,
 ) {
-
-  var connectionStatus: WalletConnectionStatus = Disconnected
 
   lateinit var urlHandler: UriHandler
 
-  private lateinit var dAppKeyPair: Nacl.KeyPair
   private val callBacks = mutableMapOf<Uuid, (result: WalletResult<WalletResponse.Success>) -> Unit>()
-
-  init {
-    CoroutineScope(Dispatchers.IO).launch {
-      dAppKeyPair = Nacl.Box.keyPair()
-    }
-  }
 
   private fun Uri.decodeWalletResponse(): WalletResponse {
     queryParam(WalletUrlQueryParams.errorCode)?.let { errorCode ->
@@ -114,9 +100,8 @@ class WalletAdaptor(
         connectionStatus = Connected(
           sharedSecret = sharedSecret,
           session = session,
-          userAccountPublicKey = userAccountPublicKey,
-          walletPublicKey = walletPublicKey
-        )
+          userAccountPublicKey = userAccountPublicKey
+        ).also { onConnected(dAppKeyPair, it) }
 
         Connect(userWalletPublicKey = userAccountPublicKey)
       }
@@ -209,11 +194,11 @@ class WalletAdaptor(
   }
 }
 
-private fun WalletConnectionStatus.ensureConnected() = this as? Connected ?: error("wallet is not connected")
+private fun ConnectionStatus.ensureConnected() = this as? Connected ?: error("wallet is not connected")
 
 @OptIn(ExperimentalUuidApi::class, ExperimentalUnsignedTypes::class)
 private fun WalletMethod<*>.encode(
-  connectionStatus: WalletConnectionStatus,
+  connectionStatus: ConnectionStatus,
   dAppKeyPair: Nacl.KeyPair,
   requestId: Uuid,
   redirectLinkPrefix: String,
@@ -271,6 +256,7 @@ private fun WalletMethod<*>.encode(
     queryParam(WalletUrlQueryParams.appUrl, appUrl)
     queryParam(WalletUrlQueryParams.redirectLink, "$redirectLinkPrefix/$methodName/$requestId")
   }
+
 }
 
 private fun sharedSecretOrNull(dAppPrivateKey: ByteArray, walletPublicKey: ByteArray) = runCatching {

@@ -37,16 +37,13 @@ fun PlayEndAlert(
 ) {
   AlertDialog(
     onDismissRequest = onDismiss,
-
     confirmButton = {
-
       DefaultButton(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
         text = stringResource(Res.string.tap_to_continue)
       ) {
         onDismiss()
       }
-
     }, // We'll build our own confirm button inside content
     modifier = Modifier.clip(RoundedCornerShape(size_24)),
     text = {
@@ -82,5 +79,5 @@ fun PlayEndAlert(
     },
     containerColor = Color.White,
 
-  )
+    )
 }

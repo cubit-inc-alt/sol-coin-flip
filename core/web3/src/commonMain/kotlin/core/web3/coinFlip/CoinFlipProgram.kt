@@ -3,6 +3,7 @@
 package core.web3.coinFlip
 
 import com.funkatronics.kborsh.Borsh
+import foundation.metaplex.amount.sol
 import foundation.metaplex.rpc.serializers.AnchorInstructionSerializer
 import foundation.metaplex.solana.programs.SystemProgram
 import foundation.metaplex.solana.transactions.AccountMeta
@@ -19,6 +20,7 @@ object CoinFlipProgram {
       payer: PublicKey,
       args: args.FlipCoin
     ): TransactionInstruction {
+
       val keys = mutableListOf<AccountMeta>()
       keys.add(AccountMeta(payer, isSigner = true, isWritable = true))
       keys.add(AccountMeta(vault, isSigner = false, isWritable = true))
@@ -47,21 +49,4 @@ object CoinFlipProgram {
       Nothing
     }
   }
-}
-
-
-object SPLSnoopInstructions {
-  fun noopInstruction(data: ByteArray): TransactionInstruction {
-    val keys = mutableListOf<AccountMeta>()
-    return TransactionInstruction(
-      PublicKey("noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV"),
-      keys, Borsh.encodeToByteArray(
-        AnchorInstructionSerializer("noop_instruction"),
-        Args_noopInstruction(data)
-      )
-    )
-  }
-
-  @Serializable
-  class Args_noopInstruction(val data: ByteArray)
 }

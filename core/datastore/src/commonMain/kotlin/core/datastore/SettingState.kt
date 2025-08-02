@@ -48,11 +48,11 @@ internal fun <T> createState(
     defaultValue: T,
     updatePreference: (String, T) -> Unit,
     addListener: (String, T, callback: (T) -> Unit) -> SettingsListener,
-    getValue: (String, T) -> T,
+    getValue: (String, T) -> T?,
 ) = SettingState(
-    setValue = { updatePreference(key, it) },
+    setValue = { updatePreference(key, it ?: defaultValue) },
     addListener = { addListener(key, defaultValue, it) },
-    getValue = { getValue(key, defaultValue) },
+    getValue = { getValue(key, defaultValue) ?: defaultValue },
 )
 
 private fun <T> ObservableSettings.createNullableState(

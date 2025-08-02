@@ -9,36 +9,54 @@ internal expect fun deviceDataStore(): ObservableSettings
 
 internal expect fun userDataStore(): ObservableSettings
 
+
 class DataStore(
-    private val deviceStore: ObservableSettings = deviceDataStore(),
-    private val userStore: ObservableSettings = userDataStore(),
+  private val deviceStore: ObservableSettings = deviceDataStore(),
+  private val userStore: ObservableSettings = userDataStore(),
 ) {
-    var accessToken by deviceStore.value<String>(ACCESS_TOKEN)
-    var refreshToken by deviceStore.value<String>(REFRESH_TOKEN)
-    var isLoggedIn by deviceStore.value<Boolean?>(IS_LOGGED_IN, defaultValue = false)
+  var accessToken by deviceStore.value<String?>(Companion.accessToken)
+  var refreshToken by deviceStore.value<String?>(Companion.refreshToken)
+  var isLoggedIn by deviceStore.value<Boolean?>(Companion.isLoggedIn, defaultValue = false)
 
-    fun clearUserData() {
-        userStore.clear()
-        deviceStore.clear()
-    }
+  var termsAccepted by userStore.value(Companion.termsAccepted, true)
+  var sharedSecret by userStore.value<String?>(Companion.sharedSecret)
+  var session by userStore.value<String?>(Companion.session)
+  var userAccountPublicKey by userStore.value<String?>(Companion.userAccountPublicKey)
+  var dAppPrivateKey by userStore.value<String?>(Companion.dAppPrivateKey)
+  var dAppPublicKey by userStore.value<String?>(Companion.dAppPublicKey)
 
-    fun getBooleanFlow(key: String): Flow<Boolean> =
-        callbackFlow {
-            val listener =
-                deviceStore.addBooleanListener(key, defaultValue = false) { value ->
-                    trySend(value)
-                }
+  fun clearUserData() {
+    userStore.clear()
+    deviceStore.clear()
+  }
 
-            // Emit the initial value
-            trySend(deviceStore.getBoolean(key, false))
-
-            awaitClose { listener.deactivate() }
+  fun getBooleanFlow(key: String): Flow<Boolean> =
+    callbackFlow {
+      val listener =
+        deviceStore.addBooleanListener(key, defaultValue = false) { value ->
+          trySend(value)
         }
 
-    companion object {
-        private const val ACCESS_TOKEN = "access_token"
-        private const val REFRESH_TOKEN = "refresh_token"
-        const val IS_LOGGED_IN = "isLoggedIn"
+      // Emit the initial value
+      trySend(deviceStore.getBoolean(key, false))
 
+      awaitClose { listener.deactivate() }
     }
+
+  @Suppress("ConstPropertyName")
+  companion object {
+    private const val sharedSecret = "walletConnectionSharedSecret"
+    private const val session = "walletSession"
+    private const val userAccountPublicKey = "userAccountPublicKey"
+    private const val dAppPrivateKey = "dAppPrivateKey"
+    private const val dAppPublicKey = "dAppPublicKey"
+    private const val termsAccepted = "termsAccepted"
+
+
+    private const val accessToken = "accessToken"
+
+    private const val refreshToken = "refreshToken"
+    const val isLoggedIn = "isLoggedIn"
+
+  }
 }

@@ -8,5 +8,5 @@ val json = Json {
     explicitNulls = false
 }
 
-inline fun <reified T> T.toJson(): String = json.encodeToString(this)
-inline fun <reified T> String.to(): T = json.decodeFromString(this)
+inline fun <reified T> T.toJsonString(): String = json.encodeToString(this)
+inline fun <reified T> String.asJsonTo(): T = json.decodeFromString(this)

@@ -12,7 +12,7 @@ import core.analytics.Log
 
 internal class BearerTokenRefresher(
     private val dataStore: DataStore,
-    private val remoteApi: AppRemoteApi,
+    private val remoteApi: RemoteApi,
 ) {
     suspend fun refreshToken(block: HttpRequestBuilder.() -> Unit): BearerTokens? {
         val refreshToken = dataStore.refreshToken ?: return null

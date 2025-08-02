@@ -1,8 +1,8 @@
 package core.network.di
 
+import core.common.AppConfig
 import core.datastore.DataStore
-import core.network.AppRemoteApi
-import core.network.AppRemoteApiImpl
+import core.network.RemoteApi
 import core.network.BearerTokenRefresher
 import core.network.baseHttpClient
 import core.network.buildAuthHttpClient
@@ -12,6 +12,8 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import core.network.buildNoAuthHttpClient
+import core.network.webSocket.KtorSocketConnection
+import core.network.webSocket.SocketConnection
 
 @Suppress("ConstPropertyName")
 object HttpClientName {
@@ -36,11 +38,19 @@ fun networkModule(): Module = module {
     buildNoAuthHttpClient(get<HttpClient>(named(HttpClientName.base)))
   }
 
-  single<AppRemoteApi> {
-    AppRemoteApiImpl(get<HttpClient>(named(HttpClientName.auth)))
+  single<RemoteApi> {
+    RemoteApi(get<HttpClient>(named(HttpClientName.auth)))
   }
 
   singleOf(::BearerTokenRefresher)
+
+  single<SocketConnection> {
+    KtorSocketConnection(
+      tag = "socket-connection",
+      AppConfig.SOCKET_BASE_URL,
+      get<HttpClient>(named(HttpClientName.noAuth))
+    )
+  }
 }
 
 internal expect fun platformNetworkModule(): Module

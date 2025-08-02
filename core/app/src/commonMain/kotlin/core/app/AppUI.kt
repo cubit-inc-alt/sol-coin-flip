@@ -14,7 +14,6 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
 import coil3.util.DebugLogger
-import core.common.injecting
 import core.designSystem.theme.AppTheme
 import core.features.WeeklyRanking.ranking.WeeklyRankingScreen
 import core.features.main.MainScreen
@@ -29,7 +28,7 @@ import org.koin.compose.koinInject
 @Composable
 fun AppUI(viewModel: AppUIViewModel) {
 
-  val walletAdaptor by injecting<WalletAdaptor>()
+  val walletAdaptor = koinInject<WalletAdaptor>()
 
   setSingletonImageLoaderFactory { context ->
     ImageLoader.Builder(context).crossfade(true).logger(DebugLogger()).build()
@@ -47,7 +46,7 @@ fun AppUI(viewModel: AppUIViewModel) {
       ToastHost {
         NavHost(
           navController = navigator,
-          startDestination = AppNavigation.WelcomeScreen
+          startDestination = if (viewModel.termsAccepted) AppNavigation.MainScreen else AppNavigation.WelcomeScreen
         ) {
           composable<AppNavigation.WelcomeScreen> {
             WelcomeScreen {
@@ -61,13 +60,7 @@ fun AppUI(viewModel: AppUIViewModel) {
           }
 
           composable<AppNavigation.MainScreen> {
-            MainScreen(koinInject()) {
-              navigator.navigate(it) {
-                popUpTo(AppNavigation.MainScreen) {
-                  inclusive = false
-                }
-              }
-            }
+            MainScreen(koinInject())
 
             composable<AppNavigation.WeeklyRankingScreen> {
               WeeklyRankingScreen(koinInject()) {

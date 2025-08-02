@@ -41,7 +41,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import core.common.injecting
 import core.designSystem.elements.DefaultButton
 import core.designSystem.theme.AppDimensions.size_16
 import core.designSystem.theme.AppDimensions.size_20
@@ -63,6 +62,7 @@ import core.ui.navigation.AppNavigation
 import core.ui.rememberMutableStateOf
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,7 +71,7 @@ fun WelcomeScreen(
   navigateToNext: (AppNavigation) -> Unit
 ) {
 
-  val welcomeViewModel by injecting<WelcomeViewModel>()
+  val welcomeViewModel = koinInject<WelcomeViewModel>()
 
   var isTermsAndConditionChecked by rememberMutableStateOf(false)
   var showChooseWallet by rememberMutableStateOf(false)

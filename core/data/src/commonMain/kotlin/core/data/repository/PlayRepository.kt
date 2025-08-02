@@ -1,11 +1,79 @@
 package core.data.repository
 
+import com.github.kittinunf.result.onSuccess
+import core.common.inject
+import core.database.extensions.asJsonTo
+import core.database.extensions.json
+import core.models.CoinFlip
+import core.models.SocketEvent
 import core.models.local.Play
+import core.network.RemoteApi
+import core.network.webSocket.SocketConnection
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import org.koin.core.KoinApplication.Companion.init
 
+@Suppress("ConstPropertyName")
+object Event {
+  const val devNetFlip = "DEV_NET_FLIP"
+  const val mainNetFlip = "MAIN_NET_FLIP"
+}
 
-class PlayRepository(
-) {
-  fun getPlayDataList() : List<Play>{
+class PlayRepository() {
+
+  val remoteApi by inject<RemoteApi>()
+
+  private
+  val socketConnection by inject<SocketConnection>()
+
+  val plays = MutableStateFlow<Set<CoinFlip>>(emptySet())
+  val newPlayEvents = Channel<CoinFlip>()
+
+  init {
+    listenForEvents()
+  }
+
+  @OptIn(DelicateCoroutinesApi::class)
+  private fun listenForEvents() = GlobalScope.launch(Dispatchers.IO) {
+    socketConnection.response.collect(::onNewData)
+  }
+
+  private fun onNewData(dataString: String) = runCatching {
+    val data = json.parseToJsonElement(dataString) as JsonObject
+    val event = (data["event"] as? JsonPrimitive)?.contentOrNull ?: return@runCatching
+
+    when (event) {
+      "test",
+      Event.mainNetFlip,
+      Event.devNetFlip -> {
+        val flipEvent = dataString.asJsonTo<SocketEvent<CoinFlip>>()
+        plays.value = plays.value + flipEvent.data
+
+        newPlayEvents.trySend(flipEvent.data)
+      }
+
+      else -> println("unknown event $event")
+    }
+  }
+
+  suspend fun refreshPlays() = withContext(Dispatchers.IO) {
+    remoteApi.getPlays()
+      .onSuccess {
+        plays.value = it.data.toSet()
+      }
+  }
+
+  fun getPlayDataList(): List<Play> {
     return listOf(
       Play(
         id = "05be5f6g78h",
@@ -43,6 +111,5 @@ class PlayRepository(
         achievement = "5,432 XP"
       )
     )
-
   }
 }

@@ -37,21 +37,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 
-class WalletSigner(
-  override val publicKey: PublicKey,
-  val walletAdaptor: WalletAdaptor
-) : Signer {
-  @OptIn(InternalCoroutinesApi::class)
-  override suspend fun signMessage(message: ByteArray) = suspendCancellableCoroutine { continuation ->
-    walletAdaptor.signMessage(WalletMethod.SignMessage(message)) { result ->
-      result
-        .onSuccess { continuation.tryResume(it.signature) }
-        .onFailure { continuation.tryResumeWithException(it) }
-    }
-  }
-}
-
-
 class WelcomeViewModel : ViewModel() {
   val connectedAccount = MutableStateFlow<PublicKey?>(null)
   val walletAdaptor by inject<WalletAdaptor>()

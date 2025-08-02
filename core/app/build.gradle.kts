@@ -12,6 +12,7 @@ kotlin {
     implementation(projects.core.designSystem)
     implementation(projects.core.ui)
     implementation(projects.core.data)
+    implementation(projects.core.datastore)
     implementation(projects.core.network)
     implementation(libs.jetbrain.navigation.compose)
     implementation(projects.core.components.coil)
@@ -19,6 +20,7 @@ kotlin {
 
     implementation(projects.core.features.welcome)
     implementation(projects.core.features.main)
+    implementation(projects.core.walletAdaptor)
     implementation(projects.core.walletAdaptor)
     implementation(libs.solana.rpc)
   }

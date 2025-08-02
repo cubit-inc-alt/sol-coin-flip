@@ -6,7 +6,7 @@ import core.database.RoomDB
 import core.database.di.databaseModule
 import core.datastore.DataStore
 import core.datastore.di.dataStoreModule
-import core.network.AppRemoteApi
+import core.network.RemoteApi
 import core.network.di.networkModule
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -21,7 +21,7 @@ fun dataModule(): Module = module {
   single<AuthRepository> {
     AuthRepository(
       get<DataStore>(),
-      get<AppRemoteApi>(),
+      get<RemoteApi>(),
       get<RoomDB>(),
     )
   }

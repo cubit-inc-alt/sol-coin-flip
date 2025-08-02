@@ -25,85 +25,94 @@ import kotlin.time.Duration.Companion.seconds
 
 
 internal fun buildAuthHttpClient(
-    baseHttpClient: HttpClient,
-    dataStore: DataStore
+  baseHttpClient: HttpClient,
+  dataStore: DataStore
 ): HttpClient = baseHttpClient.config {
-    expectSuccess = true
+  expectSuccess = true
 
-    installLogging()
+  installLogging()
 
-    installDefaultRequest()
+  installDefaultRequest()
 
-    installJsonContentNegotiation()
+  installJsonContentNegotiation()
 
-    installTimeout()
+  installTimeout()
 
-    installAuth()
-    with(dataStore) {
-        install(DeviceHeaders)
-    }
+  installAuth()
+  with(dataStore) {
+    install(DeviceHeaders)
+  }
 }
 
 
 internal fun buildNoAuthHttpClient(
-    httpClient: HttpClient
+  httpClient: HttpClient
 ): HttpClient = httpClient.config {
-    expectSuccess = true
+  expectSuccess = true
 
-    installLogging()
+  installLogging()
 
-    installTimeout()
+  installWebSockets()
+
+  installTimeout()
+}
+
+
+internal fun HttpClientConfig<*>.installWebSockets() {
+  install(WebSockets) {
+    contentConverter = KotlinxWebsocketSerializationConverter(nonStrictJson)
+  }
 }
 
 
 internal fun HttpClientConfig<*>.installDefaultRequest() {
-    install(DefaultRequest) {
-        url(AppConfig.API_BASE_URL)
-    }
+  install(DefaultRequest) {
+    url(AppConfig.API_BASE_URL)
+  }
 }
 
 internal fun HttpClientConfig<*>.installJsonContentNegotiation() {
-    install(ContentNegotiation) {
-        json(nonStrictJson)
-    }
+  install(ContentNegotiation) {
+    json(nonStrictJson)
+  }
 }
 
 internal fun HttpClientConfig<*>.installTimeout() {
-    install(HttpTimeout) {
-        socketTimeoutMillis = 5.minutes.inWholeMilliseconds
-        connectTimeoutMillis = 30.seconds.inWholeMilliseconds
-    }
+  install(HttpTimeout) {
+    socketTimeoutMillis = 5.minutes.inWholeMilliseconds
+    connectTimeoutMillis = 30.seconds.inWholeMilliseconds
+  }
 }
 
 internal fun HttpClientConfig<*>.installLogging() {
-    install(Logging) {
-        level = if (isDebugBuild()) LogLevel.ALL else LogLevel.INFO
+  install(Logging) {
+    level = if (isDebugBuild()) LogLevel.ALL else LogLevel.INFO
 
-        this.logger = object : Logger {
-            override fun log(message: String) {
-                Log.info("Ktor", message)
-            }
-        }
+    this.logger = object : Logger {
+      override fun log(message: String) {
+        Log.info("Ktor", message)
+      }
     }
+  }
 }
 
 internal fun HttpClientConfig<*>.installAuth() {
-    val tokenRefresher by inject<BearerTokenRefresher>()
-    val dataStore by inject<DataStore>()
-    install(Auth) {
-        bearer {
-            loadTokens { dataStore.getBearerTokens() }
-            refreshTokens {
-                if (this.oldTokens != dataStore.getBearerTokens()) {
-                    loadTokens { dataStore.getBearerTokens() }
-                }
-
-                tokenRefresher.refreshToken {
-                    markAsRefreshTokenRequest()
-                }
-            }
+  val tokenRefresher by inject<BearerTokenRefresher>()
+  val dataStore by inject<DataStore>()
+  install(Auth) {
+    bearer {
+      loadTokens { dataStore.getBearerTokens() }
+      refreshTokens {
+        if (this.oldTokens != dataStore.getBearerTokens()) {
+          loadTokens { dataStore.getBearerTokens() }
         }
+
+        tokenRefresher.refreshToken {
+          markAsRefreshTokenRequest()
+        }
+      }
     }
+  }
 }
 
 
