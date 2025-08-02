@@ -18,7 +18,7 @@ class DataStore(
   var refreshToken by deviceStore.value<String?>(Companion.refreshToken)
   var isLoggedIn by deviceStore.value<Boolean?>(Companion.isLoggedIn, defaultValue = false)
 
-  var termsAccepted by userStore.value(Companion.termsAccepted, true)
+  var termsAccepted by userStore.value(Companion.termsAccepted, false)
   var sharedSecret by userStore.value<String?>(Companion.sharedSecret)
   var session by userStore.value<String?>(Companion.session)
   var userAccountPublicKey by userStore.value<String?>(Companion.userAccountPublicKey)
